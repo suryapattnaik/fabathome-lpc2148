@@ -1,0 +1,1267 @@
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 1
+
+
+   1              		.file	"icmp.c"
+   2              		.section	.debug_abbrev,"",%progbits
+   3              	.Ldebug_abbrev0:
+   4              		.section	.debug_info,"",%progbits
+   5              	.Ldebug_info0:
+   6              		.section	.debug_line,"",%progbits
+   7              	.Ldebug_line0:
+   8 0000 A5000000 		.text
+   8      02006C00 
+   8      00000201 
+   8      FB0E0D00 
+   8      01010101 
+   9              	.Ltext0:
+  10              		.align	2
+  11              		.global	icmpInit
+  12              		.type	icmpInit, %function
+  13              	icmpInit:
+  14              	.LFB2:
+  15              		.file 1 "c:\\code\\arm\\armlib/net/icmp.c"
+   1:c:\code\arm\armlib/net\icmp.c **** /*! \file icmp.c \brief ICMP Protocol Library. */
+   2:c:\code\arm\armlib/net\icmp.c **** //*****************************************************************************
+   3:c:\code\arm\armlib/net\icmp.c **** //
+   4:c:\code\arm\armlib/net\icmp.c **** // File Name	: 'icmp.c'
+   5:c:\code\arm\armlib/net\icmp.c **** // Title		: ICMP (Internet Control Message Protocol) Protocol Library
+   6:c:\code\arm\armlib/net\icmp.c **** // Author		: Pascal Stang
+   7:c:\code\arm\armlib/net\icmp.c **** // Created		: 9/10/2004
+   8:c:\code\arm\armlib/net\icmp.c **** // Revised		: 7/3/2005
+   9:c:\code\arm\armlib/net\icmp.c **** // Version		: 0.1
+  10:c:\code\arm\armlib/net\icmp.c **** // Target MCU	: Atmel AVR series
+  11:c:\code\arm\armlib/net\icmp.c **** // Editor Tabs	: 4
+  12:c:\code\arm\armlib/net\icmp.c **** //
+  13:c:\code\arm\armlib/net\icmp.c **** //*****************************************************************************
+  14:c:\code\arm\armlib/net\icmp.c **** 
+  15:c:\code\arm\armlib/net\icmp.c **** #include "global.h"
+  16:c:\code\arm\armlib/net\icmp.c **** #include "net.h"
+  17:c:\code\arm\armlib/net\icmp.c **** #include "nic.h"
+  18:c:\code\arm\armlib/net\icmp.c **** #include "arp.h"
+  19:c:\code\arm\armlib/net\icmp.c **** #include "icmp.h"
+  20:c:\code\arm\armlib/net\icmp.c **** 
+  21:c:\code\arm\armlib/net\icmp.c **** #include "rprintf.h"
+  22:c:\code\arm\armlib/net\icmp.c **** #include "debug.h"
+  23:c:\code\arm\armlib/net\icmp.c **** 
+  24:c:\code\arm\armlib/net\icmp.c **** // global variables
+  25:c:\code\arm\armlib/net\icmp.c **** 
+  26:c:\code\arm\armlib/net\icmp.c **** 
+  27:c:\code\arm\armlib/net\icmp.c **** // functions
+  28:c:\code\arm\armlib/net\icmp.c **** void icmpInit(void)
+  29:c:\code\arm\armlib/net\icmp.c **** {
+  16              	 args = 0, pretend = 0, frame = 0
+  17              		@ frame_needed = 0, uses_anonymous_args = 0
+  18              		@ link register save eliminated.
+  19              		@ lr needed for prologue
+  20              		.loc 1 30 0
+  30:c:\code\arm\armlib/net\icmp.c **** }
+  21              	r
+  22 0000 1EFF2FE1 	.LFE2:
+  23              		.size	icmpInit, .-icmpInit
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 2
+
+
+  24              		.section	.rodata.str1.4,"aMS",%progbits,1
+  25              		.align	2
+  26              	.LC0:
+  27              		.ascii	"ICMP Packet:\015\012\000"
+  28 0000 49434D50 		.align	2
+  28      20506163 
+  28      6B65743A 
+  28      0D0A00
+  29 000f 00       	.LC1:
+  30              		.ascii	"SrcIpAddr: \000"
+  31 0010 53726349 		.align	2
+  31      70416464 
+  31      723A2000 
+  32              	.LC2:
+  33              		.ascii	"DstIpAddr: \000"
+  34 001c 44737449 		.align	2
+  34      70416464 
+  34      723A2000 
+  35              	.LC3:
+  36              		.ascii	"Type   : \000"
+  37 0028 54797065 		.align	2
+  37      2020203A 
+  37      2000
+  38 0032 0000     	.LC4:
+  39              		.ascii	"ECHO REQUEST\000"
+  40 0034 4543484F 		.align	2
+  40      20524551 
+  40      55455354 
+  40      00
+  41 0041 000000   	.LC5:
+  42              		.ascii	"ECHO REPLY\000"
+  43 0044 4543484F 		.align	2
+  43      20524550 
+  43      4C5900
+  44 004f 00       	.LC6:
+  45              		.ascii	"UNKNOWN\000"
+  46 0050 554E4B4E 		.align	2
+  46      4F574E00 
+  47              	.LC7:
+  48              		.ascii	"Code   : 0x\000"
+  49 0058 436F6465 		.text
+  49      2020203A 
+  49      20307800 
+  50              		.align	2
+  51              		.global	icmpPrintHeader
+  52              		.type	icmpPrintHeader, %function
+  53              	icmpPrintHeader:
+  54              	.LFB5:
+  55              		.loc 1 79 0
+  31:c:\code\arm\armlib/net\icmp.c **** 
+  32:c:\code\arm\armlib/net\icmp.c **** void icmpIpIn(icmpip_hdr* packet)
+  33:c:\code\arm\armlib/net\icmp.c **** {
+  34:c:\code\arm\armlib/net\icmp.c **** 	// check ICMP type
+  35:c:\code\arm\armlib/net\icmp.c **** 	switch(packet->icmp.type)
+  36:c:\code\arm\armlib/net\icmp.c **** 	{
+  37:c:\code\arm\armlib/net\icmp.c **** 	case ICMP_TYPE_ECHOREQUEST:
+  38:c:\code\arm\armlib/net\icmp.c **** 		// echo request
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 3
+
+
+  39:c:\code\arm\armlib/net\icmp.c **** 		icmpEchoRequest(packet);
+  40:c:\code\arm\armlib/net\icmp.c **** 		break;
+  41:c:\code\arm\armlib/net\icmp.c **** 	default:
+  42:c:\code\arm\armlib/net\icmp.c **** 		break;
+  43:c:\code\arm\armlib/net\icmp.c **** 	}
+  44:c:\code\arm\armlib/net\icmp.c **** }
+  45:c:\code\arm\armlib/net\icmp.c **** 
+  46:c:\code\arm\armlib/net\icmp.c **** void icmpEchoRequest(icmpip_hdr* packet)
+  47:c:\code\arm\armlib/net\icmp.c **** {
+  48:c:\code\arm\armlib/net\icmp.c **** 	uint32_t tempIp;
+  49:c:\code\arm\armlib/net\icmp.c **** 
+  50:c:\code\arm\armlib/net\icmp.c **** 	#if NET_DEBUG >= 3
+  51:c:\code\arm\armlib/net\icmp.c **** 		icmpPrintHeader(packet);
+  52:c:\code\arm\armlib/net\icmp.c **** 		//debugPrintHexTable(htons(packet->ip.len), (u08*)packet);
+  53:c:\code\arm\armlib/net\icmp.c **** 	#endif
+  54:c:\code\arm\armlib/net\icmp.c **** 	
+  55:c:\code\arm\armlib/net\icmp.c **** 	// change type to reply
+  56:c:\code\arm\armlib/net\icmp.c **** 	packet->icmp.type = ICMP_TYPE_ECHOREPLY;
+  57:c:\code\arm\armlib/net\icmp.c **** 	// recalculate checksum
+  58:c:\code\arm\armlib/net\icmp.c **** 	packet->icmp.icmpchksum = 0;
+  59:c:\code\arm\armlib/net\icmp.c **** 	packet->icmp.icmpchksum = netChecksum((u08*)&packet->icmp, htons(packet->ip.len)-IP_HEADER_LEN);
+  60:c:\code\arm\armlib/net\icmp.c **** 	// return to sender
+  61:c:\code\arm\armlib/net\icmp.c **** 	tempIp = packet->ip.destipaddr;
+  62:c:\code\arm\armlib/net\icmp.c **** 	packet->ip.destipaddr = packet->ip.srcipaddr;
+  63:c:\code\arm\armlib/net\icmp.c **** 	packet->ip.srcipaddr = tempIp;
+  64:c:\code\arm\armlib/net\icmp.c **** 	// add ethernet routing
+  65:c:\code\arm\armlib/net\icmp.c **** 	arpIpOut((struct netEthIpHeader*)(((u08*)packet)-ETH_HEADER_LEN), 0);
+  66:c:\code\arm\armlib/net\icmp.c **** 	
+  67:c:\code\arm\armlib/net\icmp.c **** 	// debugging
+  68:c:\code\arm\armlib/net\icmp.c **** 	#if NET_DEBUG >= 2
+  69:c:\code\arm\armlib/net\icmp.c **** 		icmpPrintHeader(packet);
+  70:c:\code\arm\armlib/net\icmp.c **** 		//debugPrintHexTable(htons(packet->ip.len), (u08*)packet);
+  71:c:\code\arm\armlib/net\icmp.c **** 	#endif
+  72:c:\code\arm\armlib/net\icmp.c **** 	
+  73:c:\code\arm\armlib/net\icmp.c **** 	// send it (packet->ip.len+ETH_HEADER_LEN
+  74:c:\code\arm\armlib/net\icmp.c **** 	nicSend(htons(packet->ip.len)+ETH_HEADER_LEN, (((u08*)packet)-ETH_HEADER_LEN));
+  75:c:\code\arm\armlib/net\icmp.c **** }
+  76:c:\code\arm\armlib/net\icmp.c **** 
+  77:c:\code\arm\armlib/net\icmp.c **** #ifdef ICMP_DEBUG_PRINT
+  78:c:\code\arm\armlib/net\icmp.c **** void icmpPrintHeader(icmpip_hdr* packet)
+  79:c:\code\arm\armlib/net\icmp.c **** {
+  56              	
+  57              		@ frame_needed = 0, uses_anonymous_args = 0
+  58              	.LVL0:
+  59              		stmfd	sp!, {r4, lr}
+  60 0004 10402DE9 	.LCFI0:
+  61              		mov	r4, r0
+  62 0008 0040A0E1 		.loc 1 80 0
+  80:c:\code\arm\armlib/net\icmp.c **** 	rprintfProgStrM("ICMP Packet:\r\n");
+  63              	0, .L9
+  64 000c 88009FE5 	.LVL1:
+  65              		bl	rprintfStr
+  66 0010 FEFFFFEB 		.loc 1 82 0
+  81:c:\code\arm\armlib/net\icmp.c **** 	// print source IP address
+  82:c:\code\arm\armlib/net\icmp.c **** 	rprintfProgStrM("SrcIpAddr: ");	netPrintIPAddr(htonl(packet->ip.srcipaddr));	rprintfCRLF();
+  67              		r0, .L9+4
+  68 0014 84009FE5 		bl	rprintfStr
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 4
+
+
+  69 0018 FEFFFFEB 		ldr	r0, [r4, #12]
+  70 001c 0C0094E5 		bl	htonl
+  71 0020 FEFFFFEB 		bl	netPrintIPAddr
+  72 0024 FEFFFFEB 		bl	rprintfCRLF
+  73 0028 FEFFFFEB 		.loc 1 84 0
+  83:c:\code\arm\armlib/net\icmp.c **** 	// print dest IP address
+  84:c:\code\arm\armlib/net\icmp.c **** 	rprintfProgStrM("DstIpAddr: ");	netPrintIPAddr(htonl(packet->ip.destipaddr));	rprintfCRLF();
+  74              	, .L9+8
+  75 002c 70009FE5 		bl	rprintfStr
+  76 0030 FEFFFFEB 		ldr	r0, [r4, #16]
+  77 0034 100094E5 		bl	htonl
+  78 0038 FEFFFFEB 		bl	netPrintIPAddr
+  79 003c FEFFFFEB 		bl	rprintfCRLF
+  80 0040 FEFFFFEB 		.loc 1 86 0
+  85:c:\code\arm\armlib/net\icmp.c **** 	// print type
+  86:c:\code\arm\armlib/net\icmp.c **** 	rprintfProgStrM("Type   : ");
+  81              	, .L9+12
+  82 0044 5C009FE5 		bl	rprintfStr
+  83 0048 FEFFFFEB 		.loc 1 87 0
+  87:c:\code\arm\armlib/net\icmp.c **** 	switch(packet->icmp.type)
+  84              	rb	r3, [r4, #20]	@ zero_extendqisi2
+  85 004c 1430D4E5 		cmp	r3, #0
+  86 0050 000053E3 		beq	.L5
+  87 0054 0400000A 		cmp	r3, #8
+  88 0058 080053E3 		bne	.L4
+  89 005c 0500001A 		.loc 1 89 0
+  88:c:\code\arm\armlib/net\icmp.c **** 	{
+  89:c:\code\arm\armlib/net\icmp.c **** 	case ICMP_TYPE_ECHOREQUEST:		rprintfProgStrM("ECHO REQUEST"); break;
+  90              	0, .L9+16
+  91 0060 44009FE5 		bl	rprintfStr
+  92 0064 FEFFFFEB 		b	.L7
+  93 0068 040000EA 	.L5:
+  94              		.loc 1 90 0
+  90:c:\code\arm\armlib/net\icmp.c **** 	case ICMP_TYPE_ECHOREPLY:		rprintfProgStrM("ECHO REPLY"); break;
+  95              	r0, .L9+20
+  96 006c 3C009FE5 		bl	rprintfStr
+  97 0070 FEFFFFEB 		b	.L7
+  98 0074 010000EA 	.L4:
+  99              		.loc 1 91 0
+  91:c:\code\arm\armlib/net\icmp.c **** 	default:						rprintfProgStrM("UNKNOWN"); break;
+ 100              	r0, .L9+24
+ 101 0078 34009FE5 		bl	rprintfStr
+ 102 007c FEFFFFEB 	.L7:
+ 103              		.loc 1 93 0
+  92:c:\code\arm\armlib/net\icmp.c **** 	}
+  93:c:\code\arm\armlib/net\icmp.c **** 	rprintfCRLF();
+ 104              	rprintfCRLF
+ 105 0080 FEFFFFEB 		.loc 1 95 0
+  94:c:\code\arm\armlib/net\icmp.c **** 	// print code
+  95:c:\code\arm\armlib/net\icmp.c **** 	rprintfProgStrM("Code   : 0x");	rprintfu08(packet->icmp.icode);			rprintfCRLF();
+ 106              	dr	r0, .L9+28
+ 107 0084 2C009FE5 		bl	rprintfStr
+ 108 0088 FEFFFFEB 		ldrb	r0, [r4, #21]	@ zero_extendqisi2
+ 109 008c 1500D4E5 		bl	rprintfu08
+ 110 0090 FEFFFFEB 		bl	rprintfCRLF
+ 111 0094 FEFFFFEB 		.loc 1 96 0
+  96:c:\code\arm\armlib/net\icmp.c **** }
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 5
+
+
+ 112              		sp!, {r4, pc}
+ 113 0098 1080BDE8 	.L10:
+ 114              		.align	2
+ 115              	.L9:
+ 116              		.word	.LC0
+ 117 009c 00000000 		.word	.LC1
+ 118 00a0 10000000 		.word	.LC2
+ 119 00a4 1C000000 		.word	.LC3
+ 120 00a8 28000000 		.word	.LC4
+ 121 00ac 34000000 		.word	.LC5
+ 122 00b0 44000000 		.word	.LC6
+ 123 00b4 50000000 		.word	.LC7
+ 124 00b8 58000000 	.LFE5:
+ 125              		.size	icmpPrintHeader, .-icmpPrintHeader
+ 126              		.align	2
+ 127              		.global	icmpEchoRequest
+ 128              		.type	icmpEchoRequest, %function
+ 129              	icmpEchoRequest:
+ 130              	.LFB4:
+ 131              		.loc 1 47 0
+ 132              		@ args = 0, pretend = 0, frame = 0
+ 133              		@ frame_needed = 0, uses_anonymous_args = 0
+ 134              	.LVL2:
+ 135              		stmfd	sp!, {r4, r5, r6, lr}
+ 136 00bc 70402DE9 	.LCFI1:
+ 137              		mov	r4, r0
+ 138 00c0 0040A0E1 		.loc 1 56 0
+ 139              		mov	r5, #0
+ 140 00c4 0050A0E3 		strb	r5, [r0, #20]
+ 141 00c8 1450C0E5 		.loc 1 58 0
+ 142              		strh	r5, [r0, #22]	@ movhi
+ 143 00cc B651C0E1 		.loc 1 59 0
+ 144              		ldrh	r0, [r0, #2]
+ 145 00d0 B200D0E1 	.LVL3:
+ 146              		bl	htons
+ 147 00d4 FEFFFFEB 		sub	r1, r0, #20
+ 148 00d8 141040E2 		mov	r1, r1, asl #16
+ 149 00dc 0118A0E1 		add	r0, r4, #20
+ 150 00e0 140084E2 		mov	r1, r1, lsr #16
+ 151 00e4 2118A0E1 		bl	netChecksum
+ 152 00e8 FEFFFFEB 		strh	r0, [r4, #22]	@ movhi
+ 153 00ec B601C4E1 		.loc 1 61 0
+ 154              		ldr	r2, [r4, #16]
+ 155 00f0 102094E5 	.LVL4:
+ 156              		.loc 1 62 0
+ 157              		ldr	r3, [r4, #12]
+ 158 00f4 0C3094E5 		str	r3, [r4, #16]
+ 159 00f8 103084E5 		.loc 1 63 0
+ 160              		str	r2, [r4, #12]
+ 161 00fc 0C2084E5 		.loc 1 65 0
+ 162              		sub	r6, r4, #14
+ 163 0100 0E6044E2 		mov	r0, r6
+ 164 0104 0600A0E1 		mov	r1, r5
+ 165 0108 0510A0E1 		bl	arpIpOut
+ 166 010c FEFFFFEB 	.LVL5:
+ 167              		.loc 1 74 0
+ 168              		ldrh	r0, [r4, #2]
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 6
+
+
+ 169 0110 B200D4E1 		bl	htons
+ 170 0114 FEFFFFEB 		add	r0, r0, #14
+ 171 0118 0E0080E2 		mov	r1, r6
+ 172 011c 0610A0E1 		bl	nicSend
+ 173 0120 FEFFFFEB 		.loc 1 75 0
+ 174              		ldmfd	sp!, {r4, r5, r6, pc}
+ 175 0124 7080BDE8 	.LFE4:
+ 176              		.size	icmpEchoRequest, .-icmpEchoRequest
+ 177              		.align	2
+ 178              		.global	icmpIpIn
+ 179              		.type	icmpIpIn, %function
+ 180              	icmpIpIn:
+ 181              	.LFB3:
+ 182              		.loc 1 33 0
+ 183              		@ args = 0, pretend = 0, frame = 0
+ 184              		@ frame_needed = 0, uses_anonymous_args = 0
+ 185              	.LVL6:
+ 186              		str	lr, [sp, #-4]!
+ 187 0128 04E02DE5 	.LCFI2:
+ 188              		.loc 1 35 0
+ 189              		ldrb	r3, [r0, #20]	@ zero_extendqisi2
+ 190 012c 1430D0E5 		cmp	r3, #8
+ 191 0130 080053E3 		ldrne	pc, [sp], #4
+ 192 0134 04F09D14 		.loc 1 39 0
+ 193              		bl	icmpEchoRequest
+ 194 0138 FEFFFFEB 	.LVL7:
+ 195              		ldr	pc, [sp], #4
+ 196 013c 04F09DE4 	.LFE3:
+ 197              		.size	icmpIpIn, .-icmpIpIn
+ 198              		.section	.debug_frame,"",%progbits
+ 199              	.Lframe0:
+ 200              		.4byte	.LECIE0-.LSCIE0
+ 201 0000 0C000000 	.LSCIE0:
+ 202              		.4byte	0xffffffff
+ 203 0004 FFFFFFFF 		.byte	0x1
+ 204 0008 01       		.ascii	"\000"
+ 205 0009 00       		.uleb128 0x1
+ 206 000a 01       		.sleb128 -4
+ 207 000b 7C       		.byte	0xe
+ 208 000c 0E       		.byte	0xc
+ 209 000d 0C       		.uleb128 0xd
+ 210 000e 0D       		.uleb128 0x0
+ 211 000f 00       		.align	2
+ 212              	.LECIE0:
+ 213              	.LSFDE0:
+ 214              		.4byte	.LEFDE0-.LASFDE0
+ 215 0010 0C000000 	.LASFDE0:
+ 216              		.4byte	.Lframe0
+ 217 0014 00000000 		.4byte	.LFB2
+ 218 0018 00000000 		.4byte	.LFE2-.LFB2
+ 219 001c 04000000 		.align	2
+ 220              	.LEFDE0:
+ 221              	.LSFDE2:
+ 222              		.4byte	.LEFDE2-.LASFDE2
+ 223 0020 14000000 	.LASFDE2:
+ 224              		.4byte	.Lframe0
+ 225 0024 00000000 		.4byte	.LFB5
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 7
+
+
+ 226 0028 04000000 		.4byte	.LFE5-.LFB5
+ 227 002c B8000000 		.byte	0x4
+ 228 0030 44       		.4byte	.LCFI0-.LFB5
+ 229              		.byte	0xe
+ 230 0031 0E       		.uleb128 0x8
+ 231 0032 08       		.byte	0x8e
+ 232 0033 8E       		.uleb128 0x1
+ 233 0034 01       		.byte	0x84
+ 234 0035 84       		.uleb128 0x2
+ 235 0036 02       		.align	2
+ 236 0037 00       	.LEFDE2:
+ 237              	.LSFDE4:
+ 238              		.4byte	.LEFDE4-.LASFDE4
+ 239 0038 18000000 	.LASFDE4:
+ 240              		.4byte	.Lframe0
+ 241 003c 00000000 		.4byte	.LFB4
+ 242 0040 BC000000 		.4byte	.LFE4-.LFB4
+ 243 0044 6C000000 		.byte	0x4
+ 244 0048 44       		.4byte	.LCFI1-.LFB4
+ 245              		.byte	0xe
+ 246 0049 0E       		.uleb128 0x10
+ 247 004a 10       		.byte	0x8e
+ 248 004b 8E       		.uleb128 0x1
+ 249 004c 01       		.byte	0x86
+ 250 004d 86       		.uleb128 0x2
+ 251 004e 02       		.byte	0x85
+ 252 004f 85       		.uleb128 0x3
+ 253 0050 03       		.byte	0x84
+ 254 0051 84       		.uleb128 0x4
+ 255 0052 04       		.align	2
+ 256 0053 00       	.LEFDE4:
+ 257              	.LSFDE6:
+ 258              		.4byte	.LEFDE6-.LASFDE6
+ 259 0054 14000000 	.LASFDE6:
+ 260              		.4byte	.Lframe0
+ 261 0058 00000000 		.4byte	.LFB3
+ 262 005c 28010000 		.4byte	.LFE3-.LFB3
+ 263 0060 18000000 		.byte	0x4
+ 264 0064 44       		.4byte	.LCFI2-.LFB3
+ 265              		.byte	0xe
+ 266 0065 0E       		.uleb128 0x4
+ 267 0066 04       		.byte	0x8e
+ 268 0067 8E       		.uleb128 0x1
+ 269 0068 01       		.align	2
+ 270 0069 000000   	.LEFDE6:
+ 271              		.file 2 "c:\\code\\arm\\armlib/net/net.h"
+ 272              		.file 3 "c:\\programa\\winarm/arm-elf/include/stdint.h"
+ 273              		.text
+ 274              	.Letext0:
+ 275              		.section	.debug_loc,"",%progbits
+ 276              	.Ldebug_loc0:
+ 277              	.LLST1:
+ 278              		.4byte	.LFB5-.Ltext0
+ 279 0000 04000000 		.4byte	.LCFI0-.Ltext0
+ 280 0004 08000000 		.2byte	0x1
+ 281 0008 0100     		.byte	0x5d
+ 282 000a 5D       		.4byte	.LCFI0-.Ltext0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 8
+
+
+ 283 000b 08000000 		.4byte	.LFE5-.Ltext0
+ 284 000f BC000000 		.2byte	0x2
+ 285 0013 0200     		.byte	0x7d
+ 286 0015 7D       		.sleb128 8
+ 287 0016 08       		.4byte	0x0
+ 288 0017 00000000 		.4byte	0x0
+ 289 001b 00000000 	.LLST2:
+ 290              		.4byte	.LVL0-.Ltext0
+ 291 001f 04000000 		.4byte	.LVL1-.Ltext0
+ 292 0023 10000000 		.2byte	0x1
+ 293 0027 0100     		.byte	0x50
+ 294 0029 50       		.4byte	.LVL1-.Ltext0
+ 295 002a 10000000 		.4byte	.LFE5-.Ltext0
+ 296 002e BC000000 		.2byte	0x1
+ 297 0032 0100     		.byte	0x54
+ 298 0034 54       		.4byte	0x0
+ 299 0035 00000000 		.4byte	0x0
+ 300 0039 00000000 	.LLST3:
+ 301              		.4byte	.LFB4-.Ltext0
+ 302 003d BC000000 		.4byte	.LCFI1-.Ltext0
+ 303 0041 C0000000 		.2byte	0x1
+ 304 0045 0100     		.byte	0x5d
+ 305 0047 5D       		.4byte	.LCFI1-.Ltext0
+ 306 0048 C0000000 		.4byte	.LFE4-.Ltext0
+ 307 004c 28010000 		.2byte	0x2
+ 308 0050 0200     		.byte	0x7d
+ 309 0052 7D       		.sleb128 16
+ 310 0053 10       		.4byte	0x0
+ 311 0054 00000000 		.4byte	0x0
+ 312 0058 00000000 	.LLST4:
+ 313              		.4byte	.LVL2-.Ltext0
+ 314 005c BC000000 		.4byte	.LVL3-.Ltext0
+ 315 0060 D4000000 		.2byte	0x1
+ 316 0064 0100     		.byte	0x50
+ 317 0066 50       		.4byte	.LVL3-.Ltext0
+ 318 0067 D4000000 		.4byte	.LFE4-.Ltext0
+ 319 006b 28010000 		.2byte	0x1
+ 320 006f 0100     		.byte	0x54
+ 321 0071 54       		.4byte	0x0
+ 322 0072 00000000 		.4byte	0x0
+ 323 0076 00000000 	.LLST5:
+ 324              		.4byte	.LVL4-.Ltext0
+ 325 007a F4000000 		.4byte	.LVL5-.Ltext0
+ 326 007e 10010000 		.2byte	0x1
+ 327 0082 0100     		.byte	0x52
+ 328 0084 52       		.4byte	0x0
+ 329 0085 00000000 		.4byte	0x0
+ 330 0089 00000000 	.LLST6:
+ 331              		.4byte	.LFB3-.Ltext0
+ 332 008d 28010000 		.4byte	.LCFI2-.Ltext0
+ 333 0091 2C010000 		.2byte	0x1
+ 334 0095 0100     		.byte	0x5d
+ 335 0097 5D       		.4byte	.LCFI2-.Ltext0
+ 336 0098 2C010000 		.4byte	.LFE3-.Ltext0
+ 337 009c 40010000 		.2byte	0x2
+ 338 00a0 0200     		.byte	0x7d
+ 339 00a2 7D       		.sleb128 4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 9
+
+
+ 340 00a3 04       		.4byte	0x0
+ 341 00a4 00000000 		.4byte	0x0
+ 342 00a8 00000000 	.LLST7:
+ 343              		.4byte	.LVL6-.Ltext0
+ 344 00ac 28010000 		.4byte	.LVL7-.Ltext0
+ 345 00b0 3C010000 		.2byte	0x1
+ 346 00b4 0100     		.byte	0x50
+ 347 00b6 50       		.4byte	0x0
+ 348 00b7 00000000 		.4byte	0x0
+ 349 00bb 00000000 		.section	.debug_info
+ 350              		.4byte	0x250
+ 351 0000 50020000 		.2byte	0x2
+ 352 0004 0200     		.4byte	.Ldebug_abbrev0
+ 353 0006 00000000 		.byte	0x4
+ 354 000a 04       		.uleb128 0x1
+ 355 000b 01       		.4byte	.Ldebug_line0
+ 356 000c 00000000 		.4byte	.Letext0
+ 357 0010 40010000 		.4byte	.Ltext0
+ 358 0014 00000000 		.4byte	.LASF30
+ 359 0018 2A000000 		.byte	0x1
+ 360 001c 01       		.4byte	.LASF31
+ 361 001d 0C000000 		.4byte	.LASF32
+ 362 0021 9B000000 		.uleb128 0x2
+ 363 0025 02       		.4byte	.LASF0
+ 364 0026 EF000000 		.byte	0x1
+ 365 002a 01       		.byte	0x8
+ 366 002b 08       		.uleb128 0x2
+ 367 002c 02       		.4byte	.LASF1
+ 368 002d 0D010000 		.byte	0x1
+ 369 0031 01       		.byte	0x6
+ 370 0032 06       		.uleb128 0x2
+ 371 0033 02       		.4byte	.LASF2
+ 372 0034 4F010000 		.byte	0x2
+ 373 0038 02       		.byte	0x7
+ 374 0039 07       		.uleb128 0x2
+ 375 003a 02       		.4byte	.LASF3
+ 376 003b 4D000000 		.byte	0x2
+ 377 003f 02       		.byte	0x5
+ 378 0040 05       		.uleb128 0x2
+ 379 0041 02       		.4byte	.LASF4
+ 380 0042 77010000 		.byte	0x4
+ 381 0046 04       		.byte	0x7
+ 382 0047 07       		.uleb128 0x2
+ 383 0048 02       		.4byte	.LASF5
+ 384 0049 92000000 		.byte	0x4
+ 385 004d 04       		.byte	0x5
+ 386 004e 05       		.uleb128 0x2
+ 387 004f 02       		.4byte	.LASF6
+ 388 0050 19010000 		.byte	0x8
+ 389 0054 08       		.byte	0x7
+ 390 0055 07       		.uleb128 0x2
+ 391 0056 02       		.4byte	.LASF7
+ 392 0057 6F000000 		.byte	0x8
+ 393 005b 08       		.byte	0x5
+ 394 005c 05       		.uleb128 0x2
+ 395 005d 02       		.4byte	.LASF8
+ 396 005e 30010000 		.byte	0x4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 10
+
+
+ 397 0062 04       		.byte	0x7
+ 398 0063 07       		.uleb128 0x2
+ 399 0064 02       		.4byte	.LASF9
+ 400 0065 6B010000 		.byte	0x1
+ 401 0069 01       		.byte	0x8
+ 402 006a 08       		.uleb128 0x3
+ 403 006b 03       		.ascii	"int\000"
+ 404 006c 696E7400 		.byte	0x4
+ 405 0070 04       		.byte	0x5
+ 406 0071 05       		.uleb128 0x4
+ 407 0072 04       		.4byte	.LASF10
+ 408 0073 57000000 		.byte	0x3
+ 409 0077 03       		.byte	0x2e
+ 410 0078 2E       		.4byte	0x25
+ 411 0079 25000000 		.uleb128 0x4
+ 412 007d 04       		.4byte	.LASF11
+ 413 007e 3D010000 		.byte	0x3
+ 414 0082 03       		.byte	0x3a
+ 415 0083 3A       		.4byte	0x33
+ 416 0084 33000000 		.uleb128 0x4
+ 417 0088 04       		.4byte	.LASF12
+ 418 0089 66000000 		.byte	0x3
+ 419 008d 03       		.byte	0x54
+ 420 008e 54       		.4byte	0x41
+ 421 008f 41000000 		.uleb128 0x2
+ 422 0093 02       		.4byte	.LASF4
+ 423 0094 77010000 		.byte	0x4
+ 424 0098 04       		.byte	0x7
+ 425 0099 07       		.uleb128 0x5
+ 426 009a 05       		.4byte	0x133
+ 427 009b 33010000 		.4byte	.LASF19
+ 428 009f 00000000 		.byte	0x14
+ 429 00a3 14       		.byte	0x2
+ 430 00a4 02       		.byte	0x49
+ 431 00a5 49       		.uleb128 0x6
+ 432 00a6 06       		.ascii	"vhl\000"
+ 433 00a7 76686C00 		.byte	0x2
+ 434 00ab 02       		.byte	0x4a
+ 435 00ac 4A       		.4byte	0x72
+ 436 00ad 72000000 		.byte	0x2
+ 437 00b1 02       		.byte	0x23
+ 438 00b2 23       		.uleb128 0x0
+ 439 00b3 00       		.uleb128 0x6
+ 440 00b4 06       		.ascii	"tos\000"
+ 441 00b5 746F7300 		.byte	0x2
+ 442 00b9 02       		.byte	0x4b
+ 443 00ba 4B       		.4byte	0x72
+ 444 00bb 72000000 		.byte	0x2
+ 445 00bf 02       		.byte	0x23
+ 446 00c0 23       		.uleb128 0x1
+ 447 00c1 01       		.uleb128 0x6
+ 448 00c2 06       		.ascii	"len\000"
+ 449 00c3 6C656E00 		.byte	0x2
+ 450 00c7 02       		.byte	0x4c
+ 451 00c8 4C       		.4byte	0x7d
+ 452 00c9 7D000000 		.byte	0x2
+ 453 00cd 02       		.byte	0x23
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 11
+
+
+ 454 00ce 23       		.uleb128 0x2
+ 455 00cf 02       		.uleb128 0x7
+ 456 00d0 07       		.4byte	.LASF13
+ 457 00d1 7D000000 		.byte	0x2
+ 458 00d5 02       		.byte	0x4d
+ 459 00d6 4D       		.4byte	0x7d
+ 460 00d7 7D000000 		.byte	0x2
+ 461 00db 02       		.byte	0x23
+ 462 00dc 23       		.uleb128 0x4
+ 463 00dd 04       		.uleb128 0x7
+ 464 00de 07       		.4byte	.LASF14
+ 465 00df 46010000 		.byte	0x2
+ 466 00e3 02       		.byte	0x4e
+ 467 00e4 4E       		.4byte	0x7d
+ 468 00e5 7D000000 		.byte	0x2
+ 469 00e9 02       		.byte	0x23
+ 470 00ea 23       		.uleb128 0x6
+ 471 00eb 06       		.uleb128 0x6
+ 472 00ec 06       		.ascii	"ttl\000"
+ 473 00ed 74746C00 		.byte	0x2
+ 474 00f1 02       		.byte	0x4f
+ 475 00f2 4F       		.4byte	0x72
+ 476 00f3 72000000 		.byte	0x2
+ 477 00f7 02       		.byte	0x23
+ 478 00f8 23       		.uleb128 0x8
+ 479 00f9 08       		.uleb128 0x7
+ 480 00fa 07       		.4byte	.LASF15
+ 481 00fb D3000000 		.byte	0x2
+ 482 00ff 02       		.byte	0x50
+ 483 0100 50       		.4byte	0x72
+ 484 0101 72000000 		.byte	0x2
+ 485 0105 02       		.byte	0x23
+ 486 0106 23       		.uleb128 0x9
+ 487 0107 09       		.uleb128 0x7
+ 488 0108 07       		.4byte	.LASF16
+ 489 0109 A0010000 		.byte	0x2
+ 490 010d 02       		.byte	0x51
+ 491 010e 51       		.4byte	0x7d
+ 492 010f 7D000000 		.byte	0x2
+ 493 0113 02       		.byte	0x23
+ 494 0114 23       		.uleb128 0xa
+ 495 0115 0A       		.uleb128 0x7
+ 496 0116 07       		.4byte	.LASF17
+ 497 0117 C9000000 		.byte	0x2
+ 498 011b 02       		.byte	0x52
+ 499 011c 52       		.4byte	0x88
+ 500 011d 88000000 		.byte	0x2
+ 501 0121 02       		.byte	0x23
+ 502 0122 23       		.uleb128 0xc
+ 503 0123 0C       		.uleb128 0x7
+ 504 0124 07       		.4byte	.LASF18
+ 505 0125 89010000 		.byte	0x2
+ 506 0129 02       		.byte	0x53
+ 507 012a 53       		.4byte	0x88
+ 508 012b 88000000 		.byte	0x2
+ 509 012f 02       		.byte	0x23
+ 510 0130 23       		.uleb128 0x10
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 12
+
+
+ 511 0131 10       		.byte	0x0
+ 512 0132 00       		.uleb128 0x5
+ 513 0133 05       		.4byte	0x185
+ 514 0134 85010000 		.4byte	.LASF20
+ 515 0138 A9010000 		.byte	0x8
+ 516 013c 08       		.byte	0x2
+ 517 013d 02       		.byte	0x5d
+ 518 013e 5D       		.uleb128 0x7
+ 519 013f 07       		.4byte	.LASF21
+ 520 0140 3F000000 		.byte	0x2
+ 521 0144 02       		.byte	0x5e
+ 522 0145 5E       		.4byte	0x72
+ 523 0146 72000000 		.byte	0x2
+ 524 014a 02       		.byte	0x23
+ 525 014b 23       		.uleb128 0x0
+ 526 014c 00       		.uleb128 0x7
+ 527 014d 07       		.4byte	.LASF22
+ 528 014e 94010000 		.byte	0x2
+ 529 0152 02       		.byte	0x5f
+ 530 0153 5F       		.4byte	0x72
+ 531 0154 72000000 		.byte	0x2
+ 532 0158 02       		.byte	0x23
+ 533 0159 23       		.uleb128 0x1
+ 534 015a 01       		.uleb128 0x7
+ 535 015b 07       		.4byte	.LASF23
+ 536 015c D9000000 		.byte	0x2
+ 537 0160 02       		.byte	0x60
+ 538 0161 60       		.4byte	0x7d
+ 539 0162 7D000000 		.byte	0x2
+ 540 0166 02       		.byte	0x23
+ 541 0167 23       		.uleb128 0x2
+ 542 0168 02       		.uleb128 0x6
+ 543 0169 06       		.ascii	"id\000"
+ 544 016a 696400   		.byte	0x2
+ 545 016d 02       		.byte	0x61
+ 546 016e 61       		.4byte	0x7d
+ 547 016f 7D000000 		.byte	0x2
+ 548 0173 02       		.byte	0x23
+ 549 0174 23       		.uleb128 0x4
+ 550 0175 04       		.uleb128 0x7
+ 551 0176 07       		.4byte	.LASF24
+ 552 0177 9A010000 		.byte	0x2
+ 553 017b 02       		.byte	0x62
+ 554 017c 62       		.4byte	0x7d
+ 555 017d 7D000000 		.byte	0x2
+ 556 0181 02       		.byte	0x23
+ 557 0182 23       		.uleb128 0x6
+ 558 0183 06       		.byte	0x0
+ 559 0184 00       		.uleb128 0x8
+ 560 0185 08       		.4byte	0x1a9
+ 561 0186 A9010000 		.byte	0x1c
+ 562 018a 1C       		.byte	0x2
+ 563 018b 02       		.byte	0xa3
+ 564 018c A3       		.uleb128 0x6
+ 565 018d 06       		.ascii	"ip\000"
+ 566 018e 697000   		.byte	0x2
+ 567 0191 02       		.byte	0xa4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 13
+
+
+ 568 0192 A4       		.4byte	0x9a
+ 569 0193 9A000000 		.byte	0x2
+ 570 0197 02       		.byte	0x23
+ 571 0198 23       		.uleb128 0x0
+ 572 0199 00       		.uleb128 0x7
+ 573 019a 07       		.4byte	.LASF25
+ 574 019b B7010000 		.byte	0x2
+ 575 019f 02       		.byte	0xa5
+ 576 01a0 A5       		.4byte	0x133
+ 577 01a1 33010000 		.byte	0x2
+ 578 01a5 02       		.byte	0x23
+ 579 01a6 23       		.uleb128 0x14
+ 580 01a7 14       		.byte	0x0
+ 581 01a8 00       		.uleb128 0x4
+ 582 01a9 04       		.4byte	.LASF26
+ 583 01aa E4000000 		.byte	0x2
+ 584 01ae 02       		.byte	0xa6
+ 585 01af A6       		.4byte	0x185
+ 586 01b0 85010000 		.uleb128 0x9
+ 587 01b4 09       		.byte	0x1
+ 588 01b5 01       		.4byte	.LASF33
+ 589 01b6 44000000 		.byte	0x1
+ 590 01ba 01       		.byte	0x1d
+ 591 01bb 1D       		.byte	0x1
+ 592 01bc 01       		.4byte	.LFB2
+ 593 01bd 00000000 		.4byte	.LFE2
+ 594 01c1 04000000 		.byte	0x1
+ 595 01c5 01       		.byte	0x5d
+ 596 01c6 5D       		.uleb128 0xa
+ 597 01c7 0A       		.4byte	0x1f0
+ 598 01c8 F0010000 		.byte	0x1
+ 599 01cc 01       		.4byte	.LASF27
+ 600 01cd FD000000 		.byte	0x1
+ 601 01d1 01       		.byte	0x4f
+ 602 01d2 4F       		.byte	0x1
+ 603 01d3 01       		.4byte	.LFB5
+ 604 01d4 04000000 		.4byte	.LFE5
+ 605 01d8 BC000000 		.4byte	.LLST1
+ 606 01dc 00000000 		.uleb128 0xb
+ 607 01e0 0B       		.4byte	.LASF29
+ 608 01e1 5F000000 		.byte	0x1
+ 609 01e5 01       		.byte	0x4e
+ 610 01e6 4E       		.4byte	0x1f0
+ 611 01e7 F0010000 		.4byte	.LLST2
+ 612 01eb 1F000000 		.byte	0x0
+ 613 01ef 00       		.uleb128 0xc
+ 614 01f0 0C       		.byte	0x4
+ 615 01f1 04       		.4byte	0x1a9
+ 616 01f2 A9010000 		.uleb128 0xa
+ 617 01f6 0A       		.4byte	0x22e
+ 618 01f7 2E020000 		.byte	0x1
+ 619 01fb 01       		.4byte	.LASF28
+ 620 01fc 82000000 		.byte	0x1
+ 621 0200 01       		.byte	0x2f
+ 622 0201 2F       		.byte	0x1
+ 623 0202 01       		.4byte	.LFB4
+ 624 0203 BC000000 		.4byte	.LFE4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 14
+
+
+ 625 0207 28010000 		.4byte	.LLST3
+ 626 020b 3D000000 		.uleb128 0xb
+ 627 020f 0B       		.4byte	.LASF29
+ 628 0210 5F000000 		.byte	0x1
+ 629 0214 01       		.byte	0x2e
+ 630 0215 2E       		.4byte	0x1f0
+ 631 0216 F0010000 		.4byte	.LLST4
+ 632 021a 5C000000 		.uleb128 0xd
+ 633 021e 0D       		.4byte	.LASF34
+ 634 021f 70010000 		.byte	0x1
+ 635 0223 01       		.byte	0x30
+ 636 0224 30       		.4byte	0x88
+ 637 0225 88000000 		.4byte	.LLST5
+ 638 0229 7A000000 		.byte	0x0
+ 639 022d 00       		.uleb128 0xe
+ 640 022e 0E       		.byte	0x1
+ 641 022f 01       		.4byte	.LASF35
+ 642 0230 62010000 		.byte	0x1
+ 643 0234 01       		.byte	0x21
+ 644 0235 21       		.byte	0x1
+ 645 0236 01       		.4byte	.LFB3
+ 646 0237 28010000 		.4byte	.LFE3
+ 647 023b 40010000 		.4byte	.LLST6
+ 648 023f 8D000000 		.uleb128 0xb
+ 649 0243 0B       		.4byte	.LASF29
+ 650 0244 5F000000 		.byte	0x1
+ 651 0248 01       		.byte	0x20
+ 652 0249 20       		.4byte	0x1f0
+ 653 024a F0010000 		.4byte	.LLST7
+ 654 024e AC000000 		.byte	0x0
+ 655 0252 00       		.byte	0x0
+ 656 0253 00       		.section	.debug_abbrev
+ 657              		.uleb128 0x1
+ 658 0000 01       		.uleb128 0x11
+ 659 0001 11       		.byte	0x1
+ 660 0002 01       		.uleb128 0x10
+ 661 0003 10       		.uleb128 0x6
+ 662 0004 06       		.uleb128 0x12
+ 663 0005 12       		.uleb128 0x1
+ 664 0006 01       		.uleb128 0x11
+ 665 0007 11       		.uleb128 0x1
+ 666 0008 01       		.uleb128 0x25
+ 667 0009 25       		.uleb128 0xe
+ 668 000a 0E       		.uleb128 0x13
+ 669 000b 13       		.uleb128 0xb
+ 670 000c 0B       		.uleb128 0x3
+ 671 000d 03       		.uleb128 0xe
+ 672 000e 0E       		.uleb128 0x1b
+ 673 000f 1B       		.uleb128 0xe
+ 674 0010 0E       		.byte	0x0
+ 675 0011 00       		.byte	0x0
+ 676 0012 00       		.uleb128 0x2
+ 677 0013 02       		.uleb128 0x24
+ 678 0014 24       		.byte	0x0
+ 679 0015 00       		.uleb128 0x3
+ 680 0016 03       		.uleb128 0xe
+ 681 0017 0E       		.uleb128 0xb
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 15
+
+
+ 682 0018 0B       		.uleb128 0xb
+ 683 0019 0B       		.uleb128 0x3e
+ 684 001a 3E       		.uleb128 0xb
+ 685 001b 0B       		.byte	0x0
+ 686 001c 00       		.byte	0x0
+ 687 001d 00       		.uleb128 0x3
+ 688 001e 03       		.uleb128 0x24
+ 689 001f 24       		.byte	0x0
+ 690 0020 00       		.uleb128 0x3
+ 691 0021 03       		.uleb128 0x8
+ 692 0022 08       		.uleb128 0xb
+ 693 0023 0B       		.uleb128 0xb
+ 694 0024 0B       		.uleb128 0x3e
+ 695 0025 3E       		.uleb128 0xb
+ 696 0026 0B       		.byte	0x0
+ 697 0027 00       		.byte	0x0
+ 698 0028 00       		.uleb128 0x4
+ 699 0029 04       		.uleb128 0x16
+ 700 002a 16       		.byte	0x0
+ 701 002b 00       		.uleb128 0x3
+ 702 002c 03       		.uleb128 0xe
+ 703 002d 0E       		.uleb128 0x3a
+ 704 002e 3A       		.uleb128 0xb
+ 705 002f 0B       		.uleb128 0x3b
+ 706 0030 3B       		.uleb128 0xb
+ 707 0031 0B       		.uleb128 0x49
+ 708 0032 49       		.uleb128 0x13
+ 709 0033 13       		.byte	0x0
+ 710 0034 00       		.byte	0x0
+ 711 0035 00       		.uleb128 0x5
+ 712 0036 05       		.uleb128 0x13
+ 713 0037 13       		.byte	0x1
+ 714 0038 01       		.uleb128 0x1
+ 715 0039 01       		.uleb128 0x13
+ 716 003a 13       		.uleb128 0x3
+ 717 003b 03       		.uleb128 0xe
+ 718 003c 0E       		.uleb128 0xb
+ 719 003d 0B       		.uleb128 0xb
+ 720 003e 0B       		.uleb128 0x3a
+ 721 003f 3A       		.uleb128 0xb
+ 722 0040 0B       		.uleb128 0x3b
+ 723 0041 3B       		.uleb128 0xb
+ 724 0042 0B       		.byte	0x0
+ 725 0043 00       		.byte	0x0
+ 726 0044 00       		.uleb128 0x6
+ 727 0045 06       		.uleb128 0xd
+ 728 0046 0D       		.byte	0x0
+ 729 0047 00       		.uleb128 0x3
+ 730 0048 03       		.uleb128 0x8
+ 731 0049 08       		.uleb128 0x3a
+ 732 004a 3A       		.uleb128 0xb
+ 733 004b 0B       		.uleb128 0x3b
+ 734 004c 3B       		.uleb128 0xb
+ 735 004d 0B       		.uleb128 0x49
+ 736 004e 49       		.uleb128 0x13
+ 737 004f 13       		.uleb128 0x38
+ 738 0050 38       		.uleb128 0xa
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 16
+
+
+ 739 0051 0A       		.byte	0x0
+ 740 0052 00       		.byte	0x0
+ 741 0053 00       		.uleb128 0x7
+ 742 0054 07       		.uleb128 0xd
+ 743 0055 0D       		.byte	0x0
+ 744 0056 00       		.uleb128 0x3
+ 745 0057 03       		.uleb128 0xe
+ 746 0058 0E       		.uleb128 0x3a
+ 747 0059 3A       		.uleb128 0xb
+ 748 005a 0B       		.uleb128 0x3b
+ 749 005b 3B       		.uleb128 0xb
+ 750 005c 0B       		.uleb128 0x49
+ 751 005d 49       		.uleb128 0x13
+ 752 005e 13       		.uleb128 0x38
+ 753 005f 38       		.uleb128 0xa
+ 754 0060 0A       		.byte	0x0
+ 755 0061 00       		.byte	0x0
+ 756 0062 00       		.uleb128 0x8
+ 757 0063 08       		.uleb128 0x13
+ 758 0064 13       		.byte	0x1
+ 759 0065 01       		.uleb128 0x1
+ 760 0066 01       		.uleb128 0x13
+ 761 0067 13       		.uleb128 0xb
+ 762 0068 0B       		.uleb128 0xb
+ 763 0069 0B       		.uleb128 0x3a
+ 764 006a 3A       		.uleb128 0xb
+ 765 006b 0B       		.uleb128 0x3b
+ 766 006c 3B       		.uleb128 0xb
+ 767 006d 0B       		.byte	0x0
+ 768 006e 00       		.byte	0x0
+ 769 006f 00       		.uleb128 0x9
+ 770 0070 09       		.uleb128 0x2e
+ 771 0071 2E       		.byte	0x0
+ 772 0072 00       		.uleb128 0x3f
+ 773 0073 3F       		.uleb128 0xc
+ 774 0074 0C       		.uleb128 0x3
+ 775 0075 03       		.uleb128 0xe
+ 776 0076 0E       		.uleb128 0x3a
+ 777 0077 3A       		.uleb128 0xb
+ 778 0078 0B       		.uleb128 0x3b
+ 779 0079 3B       		.uleb128 0xb
+ 780 007a 0B       		.uleb128 0x27
+ 781 007b 27       		.uleb128 0xc
+ 782 007c 0C       		.uleb128 0x11
+ 783 007d 11       		.uleb128 0x1
+ 784 007e 01       		.uleb128 0x12
+ 785 007f 12       		.uleb128 0x1
+ 786 0080 01       		.uleb128 0x40
+ 787 0081 40       		.uleb128 0xa
+ 788 0082 0A       		.byte	0x0
+ 789 0083 00       		.byte	0x0
+ 790 0084 00       		.uleb128 0xa
+ 791 0085 0A       		.uleb128 0x2e
+ 792 0086 2E       		.byte	0x1
+ 793 0087 01       		.uleb128 0x1
+ 794 0088 01       		.uleb128 0x13
+ 795 0089 13       		.uleb128 0x3f
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 17
+
+
+ 796 008a 3F       		.uleb128 0xc
+ 797 008b 0C       		.uleb128 0x3
+ 798 008c 03       		.uleb128 0xe
+ 799 008d 0E       		.uleb128 0x3a
+ 800 008e 3A       		.uleb128 0xb
+ 801 008f 0B       		.uleb128 0x3b
+ 802 0090 3B       		.uleb128 0xb
+ 803 0091 0B       		.uleb128 0x27
+ 804 0092 27       		.uleb128 0xc
+ 805 0093 0C       		.uleb128 0x11
+ 806 0094 11       		.uleb128 0x1
+ 807 0095 01       		.uleb128 0x12
+ 808 0096 12       		.uleb128 0x1
+ 809 0097 01       		.uleb128 0x40
+ 810 0098 40       		.uleb128 0x6
+ 811 0099 06       		.byte	0x0
+ 812 009a 00       		.byte	0x0
+ 813 009b 00       		.uleb128 0xb
+ 814 009c 0B       		.uleb128 0x5
+ 815 009d 05       		.byte	0x0
+ 816 009e 00       		.uleb128 0x3
+ 817 009f 03       		.uleb128 0xe
+ 818 00a0 0E       		.uleb128 0x3a
+ 819 00a1 3A       		.uleb128 0xb
+ 820 00a2 0B       		.uleb128 0x3b
+ 821 00a3 3B       		.uleb128 0xb
+ 822 00a4 0B       		.uleb128 0x49
+ 823 00a5 49       		.uleb128 0x13
+ 824 00a6 13       		.uleb128 0x2
+ 825 00a7 02       		.uleb128 0x6
+ 826 00a8 06       		.byte	0x0
+ 827 00a9 00       		.byte	0x0
+ 828 00aa 00       		.uleb128 0xc
+ 829 00ab 0C       		.uleb128 0xf
+ 830 00ac 0F       		.byte	0x0
+ 831 00ad 00       		.uleb128 0xb
+ 832 00ae 0B       		.uleb128 0xb
+ 833 00af 0B       		.uleb128 0x49
+ 834 00b0 49       		.uleb128 0x13
+ 835 00b1 13       		.byte	0x0
+ 836 00b2 00       		.byte	0x0
+ 837 00b3 00       		.uleb128 0xd
+ 838 00b4 0D       		.uleb128 0x34
+ 839 00b5 34       		.byte	0x0
+ 840 00b6 00       		.uleb128 0x3
+ 841 00b7 03       		.uleb128 0xe
+ 842 00b8 0E       		.uleb128 0x3a
+ 843 00b9 3A       		.uleb128 0xb
+ 844 00ba 0B       		.uleb128 0x3b
+ 845 00bb 3B       		.uleb128 0xb
+ 846 00bc 0B       		.uleb128 0x49
+ 847 00bd 49       		.uleb128 0x13
+ 848 00be 13       		.uleb128 0x2
+ 849 00bf 02       		.uleb128 0x6
+ 850 00c0 06       		.byte	0x0
+ 851 00c1 00       		.byte	0x0
+ 852 00c2 00       		.uleb128 0xe
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 18
+
+
+ 853 00c3 0E       		.uleb128 0x2e
+ 854 00c4 2E       		.byte	0x1
+ 855 00c5 01       		.uleb128 0x3f
+ 856 00c6 3F       		.uleb128 0xc
+ 857 00c7 0C       		.uleb128 0x3
+ 858 00c8 03       		.uleb128 0xe
+ 859 00c9 0E       		.uleb128 0x3a
+ 860 00ca 3A       		.uleb128 0xb
+ 861 00cb 0B       		.uleb128 0x3b
+ 862 00cc 3B       		.uleb128 0xb
+ 863 00cd 0B       		.uleb128 0x27
+ 864 00ce 27       		.uleb128 0xc
+ 865 00cf 0C       		.uleb128 0x11
+ 866 00d0 11       		.uleb128 0x1
+ 867 00d1 01       		.uleb128 0x12
+ 868 00d2 12       		.uleb128 0x1
+ 869 00d3 01       		.uleb128 0x40
+ 870 00d4 40       		.uleb128 0x6
+ 871 00d5 06       		.byte	0x0
+ 872 00d6 00       		.byte	0x0
+ 873 00d7 00       		.byte	0x0
+ 874 00d8 00       		.section	.debug_pubnames,"",%progbits
+ 875              		.4byte	0x50
+ 876 0000 50000000 		.2byte	0x2
+ 877 0004 0200     		.4byte	.Ldebug_info0
+ 878 0006 00000000 		.4byte	0x254
+ 879 000a 54020000 		.4byte	0x1b4
+ 880 000e B4010000 		.ascii	"icmpInit\000"
+ 881 0012 69636D70 		.4byte	0x1c7
+ 881      496E6974 
+ 881      00
+ 882 001b C7010000 		.ascii	"icmpPrintHeader\000"
+ 883 001f 69636D70 		.4byte	0x1f6
+ 883      5072696E 
+ 883      74486561 
+ 883      64657200 
+ 884 002f F6010000 		.ascii	"icmpEchoRequest\000"
+ 885 0033 69636D70 		.4byte	0x22e
+ 885      4563686F 
+ 885      52657175 
+ 885      65737400 
+ 886 0043 2E020000 		.ascii	"icmpIpIn\000"
+ 887 0047 69636D70 		.4byte	0x0
+ 887      4970496E 
+ 887      00
+ 888 0050 00000000 		.section	.debug_aranges,"",%progbits
+ 889              		.4byte	0x1c
+ 890 0000 1C000000 		.2byte	0x2
+ 891 0004 0200     		.4byte	.Ldebug_info0
+ 892 0006 00000000 		.byte	0x4
+ 893 000a 04       		.byte	0x0
+ 894 000b 00       		.2byte	0x0
+ 895 000c 0000     		.2byte	0x0
+ 896 000e 0000     		.4byte	.Ltext0
+ 897 0010 00000000 		.4byte	.Letext0-.Ltext0
+ 898 0014 40010000 		.4byte	0x0
+ 899 0018 00000000 		.4byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 19
+
+
+ 900 001c 00000000 		.section	.debug_str,"MS",%progbits,1
+ 901              	.LASF19:
+ 902              		.ascii	"netIpHeader\000"
+ 903 0000 6E657449 	.LASF31:
+ 903      70486561 
+ 903      64657200 
+ 904              		.ascii	"c:\\code\\arm\\armlib/net/icmp.c\000"
+ 905 000c 633A5C63 	.LASF30:
+ 905      6F64655C 
+ 905      61726D5C 
+ 905      61726D6C 
+ 905      69622F6E 
+ 906              		.ascii	"GNU C 4.1.1 (WinARM)\000"
+ 907 002a 474E5520 	.LASF21:
+ 907      4320342E 
+ 907      312E3120 
+ 907      2857696E 
+ 907      41524D29 
+ 908              		.ascii	"type\000"
+ 909 003f 74797065 	.LASF33:
+ 909      00
+ 910              		.ascii	"icmpInit\000"
+ 911 0044 69636D70 	.LASF3:
+ 911      496E6974 
+ 911      00
+ 912              		.ascii	"short int\000"
+ 913 004d 73686F72 	.LASF10:
+ 913      7420696E 
+ 913      7400
+ 914              		.ascii	"uint8_t\000"
+ 915 0057 75696E74 	.LASF29:
+ 915      385F7400 
+ 916              		.ascii	"packet\000"
+ 917 005f 7061636B 	.LASF12:
+ 917      657400
+ 918              		.ascii	"uint32_t\000"
+ 919 0066 75696E74 	.LASF7:
+ 919      33325F74 
+ 919      00
+ 920              		.ascii	"long long int\000"
+ 921 006f 6C6F6E67 	.LASF13:
+ 921      206C6F6E 
+ 921      6720696E 
+ 921      7400
+ 922              		.ascii	"ipid\000"
+ 923 007d 69706964 	.LASF28:
+ 923      00
+ 924              		.ascii	"icmpEchoRequest\000"
+ 925 0082 69636D70 	.LASF5:
+ 925      4563686F 
+ 925      52657175 
+ 925      65737400 
+ 926              		.ascii	"long int\000"
+ 927 0092 6C6F6E67 	.LASF32:
+ 927      20696E74 
+ 927      00
+ 928              		.ascii	"C:\\Code\\ARM\\lpc2000\\EtherDrive\\etherdrive-net\000"
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 20
+
+
+ 929 009b 433A5C43 	.LASF17:
+ 929      6F64655C 
+ 929      41524D5C 
+ 929      6C706332 
+ 929      3030305C 
+ 930              		.ascii	"srcipaddr\000"
+ 931 00c9 73726369 	.LASF15:
+ 931      70616464 
+ 931      7200
+ 932              		.ascii	"proto\000"
+ 933 00d3 70726F74 	.LASF23:
+ 933      6F00
+ 934              		.ascii	"icmpchksum\000"
+ 935 00d9 69636D70 	.LASF26:
+ 935      63686B73 
+ 935      756D00
+ 936              		.ascii	"icmpip_hdr\000"
+ 937 00e4 69636D70 	.LASF0:
+ 937      69705F68 
+ 937      647200
+ 938              		.ascii	"unsigned char\000"
+ 939 00ef 756E7369 	.LASF27:
+ 939      676E6564 
+ 939      20636861 
+ 939      7200
+ 940              		.ascii	"icmpPrintHeader\000"
+ 941 00fd 69636D70 	.LASF1:
+ 941      5072696E 
+ 941      74486561 
+ 941      64657200 
+ 942              		.ascii	"signed char\000"
+ 943 010d 7369676E 	.LASF6:
+ 943      65642063 
+ 943      68617200 
+ 944              		.ascii	"long long unsigned int\000"
+ 945 0119 6C6F6E67 	.LASF8:
+ 945      206C6F6E 
+ 945      6720756E 
+ 945      7369676E 
+ 945      65642069 
+ 946              		.ascii	"unsigned int\000"
+ 947 0130 756E7369 	.LASF11:
+ 947      676E6564 
+ 947      20696E74 
+ 947      00
+ 948              		.ascii	"uint16_t\000"
+ 949 013d 75696E74 	.LASF14:
+ 949      31365F74 
+ 949      00
+ 950              		.ascii	"ipoffset\000"
+ 951 0146 69706F66 	.LASF2:
+ 951      66736574 
+ 951      00
+ 952              		.ascii	"short unsigned int\000"
+ 953 014f 73686F72 	.LASF35:
+ 953      7420756E 
+ 953      7369676E 
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 21
+
+
+ 953      65642069 
+ 953      6E7400
+ 954              		.ascii	"icmpIpIn\000"
+ 955 0162 69636D70 	.LASF9:
+ 955      4970496E 
+ 955      00
+ 956              		.ascii	"char\000"
+ 957 016b 63686172 	.LASF34:
+ 957      00
+ 958              		.ascii	"tempIp\000"
+ 959 0170 74656D70 	.LASF4:
+ 959      497000
+ 960              		.ascii	"long unsigned int\000"
+ 961 0177 6C6F6E67 	.LASF18:
+ 961      20756E73 
+ 961      69676E65 
+ 961      6420696E 
+ 961      7400
+ 962              		.ascii	"destipaddr\000"
+ 963 0189 64657374 	.LASF22:
+ 963      69706164 
+ 963      647200
+ 964              		.ascii	"icode\000"
+ 965 0194 69636F64 	.LASF24:
+ 965      6500
+ 966              		.ascii	"seqno\000"
+ 967 019a 7365716E 	.LASF16:
+ 967      6F00
+ 968              		.ascii	"ipchksum\000"
+ 969 01a0 69706368 	.LASF20:
+ 969      6B73756D 
+ 969      00
+ 970              		.ascii	"netIcmpHeader\000"
+ 971 01a9 6E657449 	.LASF25:
+ 971      636D7048 
+ 971      65616465 
+ 971      7200
+ 972              		.ascii	"icmp\000"
+ 973 01b7 69636D70 		.ident	"GCC: (GNU) 4.1.1 (WinARM)"
+ 973      00
+ 974              	...
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s 			page 22
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 icmp.c
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s:13     .text:00000000 icmpInit
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s:22     .text:00000000 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s:54     .text:00000004 icmpPrintHeader
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s:117    .text:0000009c $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s:130    .text:000000bc icmpEchoRequest
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s:136    .text:000000bc $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccodbaaa.s:181    .text:00000128 icmpIpIn
+
+UNDEFINED SYMBOLS
+rprintfStr
+htonl
+netPrintIPAddr
+rprintfCRLF
+rprintfu08
+htons
+netChecksum
+arpIpOut
+nicSend

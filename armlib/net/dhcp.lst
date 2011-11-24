@@ -1,0 +1,2904 @@
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 1
+
+
+   1              		.file	"dhcp.c"
+   2              		.section	.debug_abbrev,"",%progbits
+   3              	.Ldebug_abbrev0:
+   4              		.section	.debug_info,"",%progbits
+   5              	.Ldebug_info0:
+   6              		.section	.debug_line,"",%progbits
+   7              	.Ldebug_line0:
+   8 0000 08010000 		.text
+   8      02006D00 
+   8      00000201 
+   8      FB0E0D00 
+   8      01010101 
+   9              	.Ltext0:
+  10              		.align	2
+  11              		.global	dhcpTimer
+  12              		.type	dhcpTimer, %function
+  13              	dhcpTimer:
+  14              	.LFB6:
+  15              		.file 1 "c:\\code\\arm\\armlib/net/dhcp.c"
+   1:c:\code\arm\armlib/net\dhcp.c **** /*! \file dhcp.c \brief DHCP Protocol Library. */
+   2:c:\code\arm\armlib/net\dhcp.c **** //*****************************************************************************
+   3:c:\code\arm\armlib/net\dhcp.c **** //
+   4:c:\code\arm\armlib/net\dhcp.c **** // File Name	: 'dhcp.c'
+   5:c:\code\arm\armlib/net\dhcp.c **** // Title		: DHCP Protocol Library
+   6:c:\code\arm\armlib/net\dhcp.c **** // Author		: Pascal Stang
+   7:c:\code\arm\armlib/net\dhcp.c **** // Created		: 9/17/2005
+   8:c:\code\arm\armlib/net\dhcp.c **** // Revised		: 9/17/2005
+   9:c:\code\arm\armlib/net\dhcp.c **** // Version		: 0.1
+  10:c:\code\arm\armlib/net\dhcp.c **** // Target MCU	: Atmel AVR series
+  11:c:\code\arm\armlib/net\dhcp.c **** // Editor Tabs	: 4
+  12:c:\code\arm\armlib/net\dhcp.c **** //
+  13:c:\code\arm\armlib/net\dhcp.c **** //*****************************************************************************
+  14:c:\code\arm\armlib/net\dhcp.c **** 
+  15:c:\code\arm\armlib/net\dhcp.c **** #include "global.h"
+  16:c:\code\arm\armlib/net\dhcp.c **** #include "net.h"
+  17:c:\code\arm\armlib/net\dhcp.c **** #include "nic.h"
+  18:c:\code\arm\armlib/net\dhcp.c **** #include "ip.h"
+  19:c:\code\arm\armlib/net\dhcp.c **** #include "netstack.h"
+  20:c:\code\arm\armlib/net\dhcp.c **** 
+  21:c:\code\arm\armlib/net\dhcp.c **** #include "dhcp.h"
+  22:c:\code\arm\armlib/net\dhcp.c **** 
+  23:c:\code\arm\armlib/net\dhcp.c **** #include "rprintf.h"
+  24:c:\code\arm\armlib/net\dhcp.c **** 
+  25:c:\code\arm\armlib/net\dhcp.c **** // global variables
+  26:c:\code\arm\armlib/net\dhcp.c **** uint32_t DhcpServerIP;		///< IP address of the DHCP server that offered lease
+  27:c:\code\arm\armlib/net\dhcp.c **** uint32_t DhcpTransactID;	///< Unique transaction ID that identifies DHCP request/replies
+  28:c:\code\arm\armlib/net\dhcp.c **** uint32_t DhcpLeaseTime;		///< Number of seconds left in DHCP lease
+  29:c:\code\arm\armlib/net\dhcp.c **** 
+  30:c:\code\arm\armlib/net\dhcp.c **** void dhcpInit(void)
+  31:c:\code\arm\armlib/net\dhcp.c **** {
+  32:c:\code\arm\armlib/net\dhcp.c **** 	uint8_t	macaddr[6];
+  33:c:\code\arm\armlib/net\dhcp.c **** 	
+  34:c:\code\arm\armlib/net\dhcp.c **** 	// get interface mac address
+  35:c:\code\arm\armlib/net\dhcp.c **** 	nicGetMacAddress(macaddr);
+  36:c:\code\arm\armlib/net\dhcp.c **** 	// set transaction ID based on mac address
+  37:c:\code\arm\armlib/net\dhcp.c **** 	DhcpTransactID = *((uint32_t*)&macaddr);
+  38:c:\code\arm\armlib/net\dhcp.c **** 	// reset lease time
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 2
+
+
+  39:c:\code\arm\armlib/net\dhcp.c **** 	DhcpLeaseTime = 0;
+  40:c:\code\arm\armlib/net\dhcp.c **** }
+  41:c:\code\arm\armlib/net\dhcp.c **** 
+  42:c:\code\arm\armlib/net\dhcp.c **** void dhcpIn(unsigned int len, struct netDhcpHeader* packet)
+  43:c:\code\arm\armlib/net\dhcp.c **** {
+  44:c:\code\arm\armlib/net\dhcp.c **** 	uint8_t msgtype;
+  45:c:\code\arm\armlib/net\dhcp.c **** 	uint32_t sid;
+  46:c:\code\arm\armlib/net\dhcp.c **** 	uint8_t* optptr;
+  47:c:\code\arm\armlib/net\dhcp.c **** 	uint32_t val;
+  48:c:\code\arm\armlib/net\dhcp.c **** 	uint32_t netmask;
+  49:c:\code\arm\armlib/net\dhcp.c **** 	uint32_t gateway;
+  50:c:\code\arm\armlib/net\dhcp.c **** 
+  51:c:\code\arm\armlib/net\dhcp.c **** 	#if NET_DEBUG >= 3
+  52:c:\code\arm\armlib/net\dhcp.c **** 	dhcpPrintHeader(packet);
+  53:c:\code\arm\armlib/net\dhcp.c **** 	#endif
+  54:c:\code\arm\armlib/net\dhcp.c **** 
+  55:c:\code\arm\armlib/net\dhcp.c **** 	// check that this is a reply, and for me
+  56:c:\code\arm\armlib/net\dhcp.c **** 	if((packet->bootp.op != BOOTP_OP_BOOTREPLY) || (packet->bootp.xid != DhcpTransactID))
+  57:c:\code\arm\armlib/net\dhcp.c **** 		return;
+  58:c:\code\arm\armlib/net\dhcp.c **** 
+  59:c:\code\arm\armlib/net\dhcp.c **** 	// process incoming packet
+  60:c:\code\arm\armlib/net\dhcp.c **** 	// check reply type
+  61:c:\code\arm\armlib/net\dhcp.c **** 	dhcpGetOption(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &msgtype);
+  62:c:\code\arm\armlib/net\dhcp.c **** 	#if NET_DEBUG >= 2
+  63:c:\code\arm\armlib/net\dhcp.c **** 	rprintf("DHCP: Received msgtype = %d\r\n", msgtype);
+  64:c:\code\arm\armlib/net\dhcp.c **** 	#endif
+  65:c:\code\arm\armlib/net\dhcp.c **** 	
+  66:c:\code\arm\armlib/net\dhcp.c **** 	if(msgtype == DHCP_MSG_DHCPOFFER)
+  67:c:\code\arm\armlib/net\dhcp.c **** 	{
+  68:c:\code\arm\armlib/net\dhcp.c **** 		// get DHCP server ID
+  69:c:\code\arm\armlib/net\dhcp.c **** 		dhcpGetOption(packet->options, DHCP_OPT_SERVERID, 4, &sid);
+  70:c:\code\arm\armlib/net\dhcp.c **** 		#ifdef DHCP_DEBUG
+  71:c:\code\arm\armlib/net\dhcp.c **** 		rprintfProgStrM("DHCP: Got offer from server "); netPrintIPAddr(htonl(sid)); rprintfCRLF();
+  72:c:\code\arm\armlib/net\dhcp.c **** 		#endif
+  73:c:\code\arm\armlib/net\dhcp.c **** 
+  74:c:\code\arm\armlib/net\dhcp.c **** 		// build DHCP request (on top of this reply)
+  75:c:\code\arm\armlib/net\dhcp.c **** 		packet->bootp.op = BOOTP_OP_BOOTREQUEST;		// request type
+  76:c:\code\arm\armlib/net\dhcp.c **** 		// set operation
+  77:c:\code\arm\armlib/net\dhcp.c **** 		val = DHCP_MSG_DHCPREQUEST;
+  78:c:\code\arm\armlib/net\dhcp.c **** 		optptr = dhcpSetOption(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
+  79:c:\code\arm\armlib/net\dhcp.c **** 		// set the server ID
+  80:c:\code\arm\armlib/net\dhcp.c **** 		optptr = dhcpSetOption(optptr, DHCP_OPT_SERVERID, 4, &sid);
+  81:c:\code\arm\armlib/net\dhcp.c **** 		// request the IP previously offered
+  82:c:\code\arm\armlib/net\dhcp.c **** 		optptr = dhcpSetOption(optptr, DHCP_OPT_REQUESTEDIP, 4, &packet->bootp.yiaddr);
+  83:c:\code\arm\armlib/net\dhcp.c **** 		// request additional information
+  84:c:\code\arm\armlib/net\dhcp.c **** 		((uint8_t*)&val)[0] = DHCP_OPT_NETMASK;
+  85:c:\code\arm\armlib/net\dhcp.c **** 		((uint8_t*)&val)[1] = DHCP_OPT_ROUTERS;
+  86:c:\code\arm\armlib/net\dhcp.c **** 		((uint8_t*)&val)[2] = DHCP_OPT_DNSSERVERS;
+  87:c:\code\arm\armlib/net\dhcp.c **** 		((uint8_t*)&val)[3] = DHCP_OPT_DOMAINNAME;
+  88:c:\code\arm\armlib/net\dhcp.c **** 		optptr = dhcpSetOption(optptr, DHCP_OPT_PARAMREQLIST, 4, &val);
+  89:c:\code\arm\armlib/net\dhcp.c **** 
+  90:c:\code\arm\armlib/net\dhcp.c **** 		#ifdef DHCP_DEBUG
+  91:c:\code\arm\armlib/net\dhcp.c **** 		rprintfProgStrM("DHCP: Sending request in response to offer\r\n");
+  92:c:\code\arm\armlib/net\dhcp.c **** 		#endif
+  93:c:\code\arm\armlib/net\dhcp.c **** 		// send DHCP request
+  94:c:\code\arm\armlib/net\dhcp.c **** 		DhcpServerIP = htonl(sid);
+  95:c:\code\arm\armlib/net\dhcp.c **** 		udpSend(DhcpServerIP, DHCP_UDP_SERVER_PORT, DHCP_HEADER_LEN+3+6+6+6+1, (uint8_t*)packet);
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 3
+
+
+  96:c:\code\arm\armlib/net\dhcp.c **** 
+  97:c:\code\arm\armlib/net\dhcp.c **** 	}
+  98:c:\code\arm\armlib/net\dhcp.c **** 	else if(msgtype == DHCP_MSG_DHCPACK)
+  99:c:\code\arm\armlib/net\dhcp.c **** 	{
+ 100:c:\code\arm\armlib/net\dhcp.c **** 		// get netmask
+ 101:c:\code\arm\armlib/net\dhcp.c **** 		dhcpGetOption(packet->options, DHCP_OPT_NETMASK, 4, &val);
+ 102:c:\code\arm\armlib/net\dhcp.c **** 		netmask = htonl(val);
+ 103:c:\code\arm\armlib/net\dhcp.c **** 		// get gateway
+ 104:c:\code\arm\armlib/net\dhcp.c **** 		dhcpGetOption(packet->options, DHCP_OPT_ROUTERS, 4, &val);
+ 105:c:\code\arm\armlib/net\dhcp.c **** 		gateway = htonl(val);
+ 106:c:\code\arm\armlib/net\dhcp.c **** 		// get gateway
+ 107:c:\code\arm\armlib/net\dhcp.c **** 		dhcpGetOption(packet->options, DHCP_OPT_LEASETIME, 4, &val);
+ 108:c:\code\arm\armlib/net\dhcp.c **** 		DhcpLeaseTime = htonl(val);
+ 109:c:\code\arm\armlib/net\dhcp.c **** 
+ 110:c:\code\arm\armlib/net\dhcp.c **** 		// assign new network info
+ 111:c:\code\arm\armlib/net\dhcp.c **** 		ipSetConfig(htonl(packet->bootp.yiaddr), netmask, gateway);
+ 112:c:\code\arm\armlib/net\dhcp.c **** 
+ 113:c:\code\arm\armlib/net\dhcp.c **** 		#ifdef DHCP_DEBUG
+ 114:c:\code\arm\armlib/net\dhcp.c **** 		rprintf("DHCP: Got request ACK, bind complete\r\n");
+ 115:c:\code\arm\armlib/net\dhcp.c **** 		//debugPrintHexTable(len-DHCP_HEADER_LEN, (packet->options));
+ 116:c:\code\arm\armlib/net\dhcp.c **** 		// print info
+ 117:c:\code\arm\armlib/net\dhcp.c **** 		ipPrintConfig(ipGetConfig());
+ 118:c:\code\arm\armlib/net\dhcp.c **** 		rprintfProgStrM("LeaseTm : ");	rprintfNum(10,8,FALSE,' ',DhcpLeaseTime);	rprintfCRLF();
+ 119:c:\code\arm\armlib/net\dhcp.c **** 		#endif
+ 120:c:\code\arm\armlib/net\dhcp.c **** 	}
+ 121:c:\code\arm\armlib/net\dhcp.c **** }
+ 122:c:\code\arm\armlib/net\dhcp.c **** 
+ 123:c:\code\arm\armlib/net\dhcp.c **** void dhcpRequest(void)
+ 124:c:\code\arm\armlib/net\dhcp.c **** {
+ 125:c:\code\arm\armlib/net\dhcp.c **** 	struct netDhcpHeader* packet;
+ 126:c:\code\arm\armlib/net\dhcp.c **** 	uint32_t val;
+ 127:c:\code\arm\armlib/net\dhcp.c **** 	
+ 128:c:\code\arm\armlib/net\dhcp.c **** 	packet = (struct netDhcpHeader*)&netstackGetBuffer()[ETH_HEADER_LEN+IP_HEADER_LEN+UDP_HEADER_LEN];
+ 129:c:\code\arm\armlib/net\dhcp.c **** 
+ 130:c:\code\arm\armlib/net\dhcp.c **** 	// build BOOTP/DHCP header
+ 131:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.op = BOOTP_OP_BOOTREQUEST;		// request type
+ 132:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.htype = BOOTP_HTYPE_ETHERNET;
+ 133:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.hlen = BOOTP_HLEN_ETHERNET;
+ 134:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.ciaddr = htonl(ipGetConfig()->ip);
+ 135:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.yiaddr = HTONL(0l);
+ 136:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.siaddr = HTONL(0l);
+ 137:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.giaddr = HTONL(0l);
+ 138:c:\code\arm\armlib/net\dhcp.c **** 	nicGetMacAddress(&packet->bootp.chaddr[0]);	// fill client hardware address
+ 139:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.xid = DhcpTransactID;
+ 140:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.flags = HTONS(1);
+ 141:c:\code\arm\armlib/net\dhcp.c **** 	
+ 142:c:\code\arm\armlib/net\dhcp.c **** 	// build DHCP request
+ 143:c:\code\arm\armlib/net\dhcp.c **** 	// begin with magic cookie
+ 144:c:\code\arm\armlib/net\dhcp.c **** 	packet->cookie = 0x63538263;
+ 145:c:\code\arm\armlib/net\dhcp.c **** 	// set operation
+ 146:c:\code\arm\armlib/net\dhcp.c **** 	val = DHCP_MSG_DHCPDISCOVER;
+ 147:c:\code\arm\armlib/net\dhcp.c **** 	dhcpSetOption(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
+ 148:c:\code\arm\armlib/net\dhcp.c **** 
+ 149:c:\code\arm\armlib/net\dhcp.c **** 	#ifdef DHCP_DEBUG
+ 150:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("DHCP: Sending Query\r\n");
+ 151:c:\code\arm\armlib/net\dhcp.c **** 	//dhcpPrintHeader(packet);
+ 152:c:\code\arm\armlib/net\dhcp.c **** 	#endif
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 4
+
+
+ 153:c:\code\arm\armlib/net\dhcp.c **** 
+ 154:c:\code\arm\armlib/net\dhcp.c **** 	// send request
+ 155:c:\code\arm\armlib/net\dhcp.c **** 	udpSend(0xFFFFFFFF, DHCP_UDP_SERVER_PORT, DHCP_HEADER_LEN+3+1, (uint8_t*)packet);
+ 156:c:\code\arm\armlib/net\dhcp.c **** }
+ 157:c:\code\arm\armlib/net\dhcp.c **** 
+ 158:c:\code\arm\armlib/net\dhcp.c **** void dhcpRelease(void)
+ 159:c:\code\arm\armlib/net\dhcp.c **** {
+ 160:c:\code\arm\armlib/net\dhcp.c **** 	struct netDhcpHeader* packet;
+ 161:c:\code\arm\armlib/net\dhcp.c **** 	uint32_t val;
+ 162:c:\code\arm\armlib/net\dhcp.c **** 	uint8_t* optptr;
+ 163:c:\code\arm\armlib/net\dhcp.c **** 	
+ 164:c:\code\arm\armlib/net\dhcp.c **** 	packet = (struct netDhcpHeader*)&netstackGetBuffer()[ETH_HEADER_LEN+IP_HEADER_LEN+UDP_HEADER_LEN];
+ 165:c:\code\arm\armlib/net\dhcp.c **** 
+ 166:c:\code\arm\armlib/net\dhcp.c **** 	// build BOOTP/DHCP header
+ 167:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.op = BOOTP_OP_BOOTREQUEST;		// request type
+ 168:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.htype = BOOTP_HTYPE_ETHERNET;
+ 169:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.hlen = BOOTP_HLEN_ETHERNET;
+ 170:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.ciaddr = htonl(ipGetConfig()->ip);
+ 171:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.yiaddr = HTONL(0l);
+ 172:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.siaddr = HTONL(0l);
+ 173:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.giaddr = HTONL(0l);
+ 174:c:\code\arm\armlib/net\dhcp.c **** 	nicGetMacAddress(&packet->bootp.chaddr[0]);	// fill client hardware address
+ 175:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.xid = DhcpTransactID;			// set trans ID (use part of MAC address)
+ 176:c:\code\arm\armlib/net\dhcp.c **** 	packet->bootp.flags = HTONS(1);
+ 177:c:\code\arm\armlib/net\dhcp.c **** 	
+ 178:c:\code\arm\armlib/net\dhcp.c **** 	// build DHCP request
+ 179:c:\code\arm\armlib/net\dhcp.c **** 	// begin with magic cookie
+ 180:c:\code\arm\armlib/net\dhcp.c **** 	packet->cookie = 0x63538263;
+ 181:c:\code\arm\armlib/net\dhcp.c **** 	// set operation
+ 182:c:\code\arm\armlib/net\dhcp.c **** 	val = DHCP_MSG_DHCPRELEASE;
+ 183:c:\code\arm\armlib/net\dhcp.c **** 	optptr = dhcpSetOption(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
+ 184:c:\code\arm\armlib/net\dhcp.c **** 	// set the server ID
+ 185:c:\code\arm\armlib/net\dhcp.c **** 	val = htonl(DhcpServerIP);
+ 186:c:\code\arm\armlib/net\dhcp.c **** 	optptr = dhcpSetOption(optptr, DHCP_OPT_SERVERID, 4, &val);
+ 187:c:\code\arm\armlib/net\dhcp.c **** 	// request the IP previously offered
+ 188:c:\code\arm\armlib/net\dhcp.c **** 	optptr = dhcpSetOption(optptr, DHCP_OPT_REQUESTEDIP, 4, &packet->bootp.ciaddr);
+ 189:c:\code\arm\armlib/net\dhcp.c **** 
+ 190:c:\code\arm\armlib/net\dhcp.c **** 	#ifdef DHCP_DEBUG
+ 191:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("DHCP: Sending Release to "); netPrintIPAddr(DhcpServerIP); rprintfCRLF();
+ 192:c:\code\arm\armlib/net\dhcp.c **** 	//dhcpPrintHeader(packet);
+ 193:c:\code\arm\armlib/net\dhcp.c **** 	#endif
+ 194:c:\code\arm\armlib/net\dhcp.c **** 
+ 195:c:\code\arm\armlib/net\dhcp.c **** 	// send release
+ 196:c:\code\arm\armlib/net\dhcp.c **** 	udpSend(DhcpServerIP, DHCP_UDP_SERVER_PORT, DHCP_HEADER_LEN+3+6+6+1, (uint8_t*)packet);
+ 197:c:\code\arm\armlib/net\dhcp.c **** 	
+ 198:c:\code\arm\armlib/net\dhcp.c **** 	// deconfigure ip addressing
+ 199:c:\code\arm\armlib/net\dhcp.c **** 	ipSetConfig(0,0,0);
+ 200:c:\code\arm\armlib/net\dhcp.c **** 	DhcpLeaseTime = 0;
+ 201:c:\code\arm\armlib/net\dhcp.c **** }
+ 202:c:\code\arm\armlib/net\dhcp.c **** 
+ 203:c:\code\arm\armlib/net\dhcp.c **** void dhcpTimer(void)
+ 204:c:\code\arm\armlib/net\dhcp.c **** {
+  16              	@ args = 0, pretend = 0, frame = 0
+  17              		@ frame_needed = 0, uses_anonymous_args = 0
+  18              		@ link register save eliminated.
+  19              		@ lr needed for prologue
+  20              		.loc 1 208 0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 5
+
+
+ 205:c:\code\arm\armlib/net\dhcp.c **** 	// this function to be called once per second
+ 206:c:\code\arm\armlib/net\dhcp.c **** 
+ 207:c:\code\arm\armlib/net\dhcp.c **** 	// decrement lease time
+ 208:c:\code\arm\armlib/net\dhcp.c **** 	if(DhcpLeaseTime)
+  21              	r2, .L5
+  22 0000 10209FE5 		ldr	r3, [r2, #0]
+  23 0004 003092E5 		cmp	r3, #0
+  24 0008 000053E3 		.loc 1 209 0
+ 209:c:\code\arm\armlib/net\dhcp.c **** 		DhcpLeaseTime--;
+  25              	ne	r3, r3, #1
+  26 000c 01304312 		strne	r3, [r2, #0]
+  27 0010 00308215 		bx	lr
+  28 0014 1EFF2FE1 	.L6:
+  29              		.align	2
+  30              	.L5:
+  31              		.word	DhcpLeaseTime
+  32 0018 00000000 	.LFE6:
+  33              		.size	dhcpTimer, .-dhcpTimer
+  34              		.align	2
+  35              		.global	dhcpGetOption
+  36              		.type	dhcpGetOption, %function
+  37              	dhcpGetOption:
+  38              	.LFB7:
+  39              		.loc 1 213 0
+ 210:c:\code\arm\armlib/net\dhcp.c **** }
+ 211:c:\code\arm\armlib/net\dhcp.c **** 
+ 212:c:\code\arm\armlib/net\dhcp.c **** uint8_t dhcpGetOption(uint8_t* options, uint8_t optcode, uint8_t optlen, void* optvalptr)
+ 213:c:\code\arm\armlib/net\dhcp.c **** {
+  40              	etend = 0, frame = 0
+  41              		@ frame_needed = 0, uses_anonymous_args = 0
+  42              	.LVL0:
+  43              		str	lr, [sp, #-4]!
+  44 001c 04E02DE5 	.LCFI0:
+  45              		mov	ip, r3
+  46 0020 03C0A0E1 		and	r1, r1, #255
+  47 0024 FF1001E2 		and	r2, r2, #255
+  48 0028 FF2002E2 	.LVL1:
+  49              	.L27:
+  50              		.loc 1 220 0
+ 214:c:\code\arm\armlib/net\dhcp.c **** 	uint8_t i;
+ 215:c:\code\arm\armlib/net\dhcp.c **** 
+ 216:c:\code\arm\armlib/net\dhcp.c **** 	// parse for desired option
+ 217:c:\code\arm\armlib/net\dhcp.c **** 	for (;;)
+ 218:c:\code\arm\armlib/net\dhcp.c **** 	{
+ 219:c:\code\arm\armlib/net\dhcp.c **** 		// skip pad characters
+ 220:c:\code\arm\armlib/net\dhcp.c **** 		if(*options == DHCP_OPT_PAD)
+  51              	r0, #0]	@ zero_extendqisi2
+  52 002c 0030D0E5 	.LVL2:
+  53              		cmp	r3, #0
+  54 0030 000053E3 		.loc 1 221 0
+ 221:c:\code\arm\armlib/net\dhcp.c **** 			options++;
+  55              	eq	r0, r0, #1
+  56 0034 01008002 		.loc 1 220 0
+  57              		beq	.L27
+  58 0038 FBFFFF0A 		.loc 1 223 0
+ 222:c:\code\arm\armlib/net\dhcp.c **** 		// break if end reached
+ 223:c:\code\arm\armlib/net\dhcp.c **** 		else if(*options == DHCP_OPT_END)
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 6
+
+
+  59              		r3, #255
+  60 003c FF0053E3 		beq	.L12
+  61 0040 1500000A 		.loc 1 226 0
+ 224:c:\code\arm\armlib/net\dhcp.c **** 			break;
+ 225:c:\code\arm\armlib/net\dhcp.c **** 		// check for desired option
+ 226:c:\code\arm\armlib/net\dhcp.c **** 		else if(*options == optcode)
+  62              	p	r3, r1
+  63 0044 010053E1 		bne	.L14
+  64 0048 0F00001A 		.loc 1 230 0
+ 227:c:\code\arm\armlib/net\dhcp.c **** 		{
+ 228:c:\code\arm\armlib/net\dhcp.c **** 			// found desired option
+ 229:c:\code\arm\armlib/net\dhcp.c **** 			// limit size to actual option length
+ 230:c:\code\arm\armlib/net\dhcp.c **** 			optlen = MIN(optlen, *(options+1));
+  65              	d	lr, r0, #1
+  66 004c 01E080E2 		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+  67 0050 0130D0E5 		cmp	r3, r2
+  68 0054 020053E1 		movcc	r2, r3
+  69 0058 0320A031 	.LVL3:
+  70              		.loc 1 235 0
+ 231:c:\code\arm\armlib/net\dhcp.c **** 			//if(*(options+1) < optlen)
+ 232:c:\code\arm\armlib/net\dhcp.c **** 			//	optlen = *(options+1);
+ 233:c:\code\arm\armlib/net\dhcp.c **** 			
+ 234:c:\code\arm\armlib/net\dhcp.c **** 			// copy contents of option
+ 235:c:\code\arm\armlib/net\dhcp.c **** 			for(i=0; i<optlen; i++)
+  71              	2, #0
+  72 005c 000052E3 		beq	.L16
+  73 0060 0700000A 		mov	r1, #0
+  74 0064 0010A0E3 	.LVL4:
+  75              	.L18:
+  76              		.loc 1 236 0
+ 236:c:\code\arm\armlib/net\dhcp.c **** 				*(((uint8_t*)optvalptr)+i) = *(options+i+2);
+  77              	3, r0, r1
+  78 0068 013080E0 		ldrb	r3, [r3, #2]	@ zero_extendqisi2
+  79 006c 0230D3E5 		strb	r3, [r1, ip]
+  80 0070 0C30C1E7 		.loc 1 235 0
+  81              		add	r3, r1, #1
+  82 0074 013081E2 		and	r1, r3, #255
+  83 0078 FF1003E2 		cmp	r2, r1
+  84 007c 010052E1 		bne	.L18
+  85 0080 F8FFFF1A 	.LVL5:
+  86              	.L16:
+  87              		.loc 1 238 0
+ 237:c:\code\arm\armlib/net\dhcp.c **** 			// return length of option
+ 238:c:\code\arm\armlib/net\dhcp.c **** 			return *(options+1);
+  88              	lr, #0]	@ zero_extendqisi2
+  89 0084 0000DEE5 	.LVL6:
+  90              		ldr	pc, [sp], #4
+  91 0088 04F09DE4 	.LVL7:
+  92              	.L14:
+  93              		.loc 1 244 0
+ 239:c:\code\arm\armlib/net\dhcp.c **** 		}
+ 240:c:\code\arm\armlib/net\dhcp.c **** 		else
+ 241:c:\code\arm\armlib/net\dhcp.c **** 		{
+ 242:c:\code\arm\armlib/net\dhcp.c **** 			// skip to next option
+ 243:c:\code\arm\armlib/net\dhcp.c **** 			options++;
+ 244:c:\code\arm\armlib/net\dhcp.c **** 			options+=*options;
+  94              	r3, [r0, #1]	@ zero_extendqisi2
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 7
+
+
+  95 008c 0130D0E5 		add	r3, r0, r3
+  96 0090 033080E0 	.LVL8:
+  97              		.loc 1 245 0
+ 245:c:\code\arm\armlib/net\dhcp.c **** 			options++;
+  98              		r0, r3, #2
+  99 0094 020083E2 		b	.L27
+ 100 0098 E3FFFFEA 	.LVL9:
+ 101              	.L12:
+ 102              		mov	r0, #0
+ 103 009c 0000A0E3 	.LVL10:
+ 104              		.loc 1 250 0
+ 246:c:\code\arm\armlib/net\dhcp.c **** 		}
+ 247:c:\code\arm\armlib/net\dhcp.c **** 	}
+ 248:c:\code\arm\armlib/net\dhcp.c **** 	// failed to find desired option
+ 249:c:\code\arm\armlib/net\dhcp.c **** 	return 0;
+ 250:c:\code\arm\armlib/net\dhcp.c **** }
+ 105              	, [sp], #4
+ 106 00a0 04F09DE4 	.LFE7:
+ 107              		.size	dhcpGetOption, .-dhcpGetOption
+ 108              		.align	2
+ 109              		.global	dhcpSetOption
+ 110              		.type	dhcpSetOption, %function
+ 111              	dhcpSetOption:
+ 112              	.LFB8:
+ 113              		.loc 1 254 0
+ 251:c:\code\arm\armlib/net\dhcp.c **** 
+ 252:c:\code\arm\armlib/net\dhcp.c **** 
+ 253:c:\code\arm\armlib/net\dhcp.c **** uint8_t* dhcpSetOption(uint8_t* options, uint8_t optcode, uint8_t optlen, void* optvalptr)
+ 254:c:\code\arm\armlib/net\dhcp.c **** {
+ 114              	 0, pretend = 0, frame = 0
+ 115              		@ frame_needed = 0, uses_anonymous_args = 0
+ 116              	.LVL11:
+ 117              		str	lr, [sp, #-4]!
+ 118 00a4 04E02DE5 	.LCFI1:
+ 119              		mov	ip, r3
+ 120 00a8 03C0A0E1 		and	r2, r2, #255
+ 121 00ac FF2002E2 		.loc 1 258 0
+ 255:c:\code\arm\armlib/net\dhcp.c **** 	// use current options address as write point
+ 256:c:\code\arm\armlib/net\dhcp.c **** 
+ 257:c:\code\arm\armlib/net\dhcp.c **** 	// set optcode
+ 258:c:\code\arm\armlib/net\dhcp.c **** 	*options++ = optcode;
+ 122              	 r0
+ 123 00b0 0030A0E1 	.LVL12:
+ 124              		strb	r1, [r3], #1
+ 125 00b4 0110C3E4 		.loc 1 260 0
+ 259:c:\code\arm\armlib/net\dhcp.c **** 	// set optlen
+ 260:c:\code\arm\armlib/net\dhcp.c **** 	*options++ = optlen;
+ 126              	b	r2, [r0, #1]
+ 127 00b8 0120C0E5 		add	lr, r3, #1
+ 128 00bc 01E083E2 	.LVL13:
+ 129              		.loc 1 262 0
+ 261:c:\code\arm\armlib/net\dhcp.c **** 	// copy in argument/data
+ 262:c:\code\arm\armlib/net\dhcp.c **** 	while(optlen--)
+ 130              		r2, r2, #1
+ 131 00c0 012042E2 	.LVL14:
+ 132              		and	r2, r2, #255
+ 133 00c4 FF2002E2 	.LVL15:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 8
+
+
+ 134              		cmp	r2, #255
+ 135 00c8 FF0052E3 		beq	.L29
+ 136 00cc 0900000A 		mov	r1, r0
+ 137 00d0 0010A0E1 	.LVL16:
+ 138              		add	r3, r0, r2
+ 139 00d4 023080E0 	.LVL17:
+ 140              		add	r0, r3, #1
+ 141 00d8 010083E2 	.LVL18:
+ 142              	.L31:
+ 143              		.loc 1 264 0
+ 263:c:\code\arm\armlib/net\dhcp.c **** 	{
+ 264:c:\code\arm\armlib/net\dhcp.c **** 		*options++ = *(uint8_t*)optvalptr++;
+ 144              	, #1	@ zero_extendqisi2
+ 145 00dc 0130DCE4 		strb	r3, [r1, #2]
+ 146 00e0 0230C1E5 		add	r1, r1, #1
+ 147 00e4 011081E2 		.loc 1 262 0
+ 148              		cmp	r1, r0
+ 149 00e8 000051E1 		bne	.L31
+ 150 00ec FAFFFF1A 		add	r3, r2, lr
+ 151 00f0 0E3082E0 		add	lr, r3, #1
+ 152 00f4 01E083E2 	.LVL19:
+ 153              	.L29:
+ 154              		.loc 1 267 0
+ 265:c:\code\arm\armlib/net\dhcp.c **** 	}
+ 266:c:\code\arm\armlib/net\dhcp.c **** 	// write end marker
+ 267:c:\code\arm\armlib/net\dhcp.c **** 	*options = DHCP_OPT_END;
+ 155              	
+ 156 00f8 0030E0E3 	.LVL20:
+ 157              		strb	r3, [lr, #0]
+ 158 00fc 0030CEE5 		.loc 1 271 0
+ 268:c:\code\arm\armlib/net\dhcp.c **** 
+ 269:c:\code\arm\armlib/net\dhcp.c **** 	// return address of end marker, to be used as a future write point
+ 270:c:\code\arm\armlib/net\dhcp.c **** 	return options;
+ 271:c:\code\arm\armlib/net\dhcp.c **** }
+ 159              	v	r0, lr
+ 160 0100 0E00A0E1 	.LVL21:
+ 161              		ldr	pc, [sp], #4
+ 162 0104 04F09DE4 	.LFE8:
+ 163              		.size	dhcpSetOption, .-dhcpSetOption
+ 164              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 165              		.align	2
+ 166              	.LC0:
+ 167              		.ascii	"DHCP Packet:\015\012\000"
+ 168 0000 44484350 		.align	2
+ 168      20506163 
+ 168      6B65743A 
+ 168      0D0A00
+ 169 000f 00       	.LC1:
+ 170              		.ascii	"Op      : \000"
+ 171 0010 4F702020 		.align	2
+ 171      20202020 
+ 171      3A2000
+ 172 001b 00       	.LC2:
+ 173              		.ascii	"BOOTREQUEST\000"
+ 174 001c 424F4F54 		.align	2
+ 174      52455155 
+ 174      45535400 
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 9
+
+
+ 175              	.LC3:
+ 176              		.ascii	"BOOTREPLY\000"
+ 177 0028 424F4F54 		.align	2
+ 177      5245504C 
+ 177      5900
+ 178 0032 0000     	.LC4:
+ 179              		.ascii	"UNKNOWN\000"
+ 180 0034 554E4B4E 		.align	2
+ 180      4F574E00 
+ 181              	.LC5:
+ 182              		.ascii	"XID     : 0x\000"
+ 183 003c 58494420 		.align	2
+ 183      20202020 
+ 183      3A203078 
+ 183      00
+ 184 0049 000000   	.LC6:
+ 185              		.ascii	"ClIpAddr: \000"
+ 186 004c 436C4970 		.align	2
+ 186      41646472 
+ 186      3A2000
+ 187 0057 00       	.LC7:
+ 188              		.ascii	"YrIpAddr: \000"
+ 189 0058 59724970 		.align	2
+ 189      41646472 
+ 189      3A2000
+ 190 0063 00       	.LC8:
+ 191              		.ascii	"SvIpAddr: \000"
+ 192 0064 53764970 		.align	2
+ 192      41646472 
+ 192      3A2000
+ 193 006f 00       	.LC9:
+ 194              		.ascii	"GwIpAddr: \000"
+ 195 0070 47774970 		.align	2
+ 195      41646472 
+ 195      3A2000
+ 196 007b 00       	.LC10:
+ 197              		.ascii	"ClHwAddr: \000"
+ 198 007c 436C4877 		.text
+ 198      41646472 
+ 198      3A2000
+ 199 0087 00       		.align	2
+ 200              		.global	dhcpPrintHeader
+ 201              		.type	dhcpPrintHeader, %function
+ 202              	dhcpPrintHeader:
+ 203              	.LFB9:
+ 204              		.loc 1 276 0
+ 272:c:\code\arm\armlib/net\dhcp.c **** 
+ 273:c:\code\arm\armlib/net\dhcp.c **** 
+ 274:c:\code\arm\armlib/net\dhcp.c **** #ifdef DHCP_DEBUG_PRINT
+ 275:c:\code\arm\armlib/net\dhcp.c **** void dhcpPrintHeader(struct netDhcpHeader* packet)
+ 276:c:\code\arm\armlib/net\dhcp.c **** {
+ 205              	eeded = 0, uses_anonymous_args = 0
+ 206              	.LVL22:
+ 207              		stmfd	sp!, {r4, lr}
+ 208              	.LCFI2:
+ 209 0108 10402DE9 		mov	r4, r0
+ 210              		.loc 1 277 0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 10
+
+
+ 211 010c 0040A0E1 		ldr	r0, .L43
+ 277:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("DHCP Packet:\r\n");
+ 212              	
+ 213 0110 48019FE5 		bl	rprintfStr
+ 214              		.loc 1 279 0
+ 215 0114 FEFFFFEB 		ldr	r0, .L43+4
+ 278:c:\code\arm\armlib/net\dhcp.c **** 	// print op
+ 279:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("Op      : ");
+ 216              		rprintfStr
+ 217 0118 44019FE5 		.loc 1 280 0
+ 218 011c FEFFFFEB 		ldrb	r3, [r4, #0]	@ zero_extendqisi2
+ 280:c:\code\arm\armlib/net\dhcp.c **** 	switch(packet->bootp.op)
+ 219              	p	r3, #1
+ 220 0120 0030D4E5 		beq	.L38
+ 221 0124 010053E3 		cmp	r3, #2
+ 222 0128 0200000A 		bne	.L42
+ 223 012c 020053E3 		b	.L39
+ 224 0130 0600001A 	.L38:
+ 225 0134 020000EA 		.loc 1 282 0
+ 226              		ldr	r0, .L43+8
+ 281:c:\code\arm\armlib/net\dhcp.c **** 	{
+ 282:c:\code\arm\armlib/net\dhcp.c **** 	case BOOTP_OP_BOOTREQUEST:	rprintfProgStrM("BOOTREQUEST"); break;
+ 227              	ntfStr
+ 228 0138 28019FE5 		b	.L40
+ 229 013c FEFFFFEB 	.L39:
+ 230 0140 040000EA 		.loc 1 283 0
+ 231              		ldr	r0, .L43+12
+ 283:c:\code\arm\armlib/net\dhcp.c **** 	case BOOTP_OP_BOOTREPLY:	rprintfProgStrM("BOOTREPLY"); break;
+ 232              	printfStr
+ 233 0144 20019FE5 		b	.L40
+ 234 0148 FEFFFFEB 	.L42:
+ 235 014c 010000EA 		.loc 1 284 0
+ 236              		ldr	r0, .L43+16
+ 284:c:\code\arm\armlib/net\dhcp.c **** 	default:					rprintfProgStrM("UNKNOWN"); break;
+ 237              	printfStr
+ 238 0150 18019FE5 	.L40:
+ 239 0154 FEFFFFEB 		.loc 1 286 0
+ 240              		bl	rprintfCRLF
+ 285:c:\code\arm\armlib/net\dhcp.c **** 	}
+ 286:c:\code\arm\armlib/net\dhcp.c **** 	rprintfCRLF();
+ 241              	c 1 288 0
+ 242 0158 FEFFFFEB 		ldr	r0, .L43+20
+ 287:c:\code\arm\armlib/net\dhcp.c **** 	// print transaction ID
+ 288:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("XID     : 0x");	rprintfu32(packet->bootp.xid);				rprintfCRLF();
+ 243              	l	rprintfStr
+ 244 015c 10019FE5 		ldrb	r0, [r4, #4]	@ zero_extendqisi2
+ 245 0160 FEFFFFEB 		ldrb	r3, [r4, #5]	@ zero_extendqisi2
+ 246 0164 0400D4E5 		orr	r0, r0, r3, asl #8
+ 247 0168 0530D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+ 248 016c 030480E1 		orr	r0, r0, r3, asl #16
+ 249 0170 0630D4E5 		ldrb	r3, [r4, #7]	@ zero_extendqisi2
+ 250 0174 030880E1 		orr	r0, r0, r3, asl #24
+ 251 0178 0730D4E5 		bl	rprintfu32
+ 252 017c 030C80E1 		bl	rprintfCRLF
+ 253 0180 FEFFFFEB 		.loc 1 290 0
+ 254 0184 FEFFFFEB 		ldr	r0, .L43+24
+ 289:c:\code\arm\armlib/net\dhcp.c **** 	// print client IP address
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 11
+
+
+ 290:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("ClIpAddr: ");	netPrintIPAddr(htonl(packet->bootp.ciaddr));	rprintfCRLF();
+ 255              	tr
+ 256 0188 E8009FE5 		ldrb	r0, [r4, #12]	@ zero_extendqisi2
+ 257 018c FEFFFFEB 		ldrb	r3, [r4, #13]	@ zero_extendqisi2
+ 258 0190 0C00D4E5 		orr	r0, r0, r3, asl #8
+ 259 0194 0D30D4E5 		ldrb	r3, [r4, #14]	@ zero_extendqisi2
+ 260 0198 030480E1 		orr	r0, r0, r3, asl #16
+ 261 019c 0E30D4E5 		ldrb	r3, [r4, #15]	@ zero_extendqisi2
+ 262 01a0 030880E1 		orr	r0, r0, r3, asl #24
+ 263 01a4 0F30D4E5 		bl	htonl
+ 264 01a8 030C80E1 		bl	netPrintIPAddr
+ 265 01ac FEFFFFEB 		bl	rprintfCRLF
+ 266 01b0 FEFFFFEB 		.loc 1 292 0
+ 267 01b4 FEFFFFEB 		ldr	r0, .L43+28
+ 291:c:\code\arm\armlib/net\dhcp.c **** 	// print 'your' IP address
+ 292:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("YrIpAddr: ");	netPrintIPAddr(htonl(packet->bootp.yiaddr));	rprintfCRLF();
+ 268              	r
+ 269 01b8 BC009FE5 		ldrb	r0, [r4, #16]	@ zero_extendqisi2
+ 270 01bc FEFFFFEB 		ldrb	r3, [r4, #17]	@ zero_extendqisi2
+ 271 01c0 1000D4E5 		orr	r0, r0, r3, asl #8
+ 272 01c4 1130D4E5 		ldrb	r3, [r4, #18]	@ zero_extendqisi2
+ 273 01c8 030480E1 		orr	r0, r0, r3, asl #16
+ 274 01cc 1230D4E5 		ldrb	r3, [r4, #19]	@ zero_extendqisi2
+ 275 01d0 030880E1 		orr	r0, r0, r3, asl #24
+ 276 01d4 1330D4E5 		bl	htonl
+ 277 01d8 030C80E1 		bl	netPrintIPAddr
+ 278 01dc FEFFFFEB 		bl	rprintfCRLF
+ 279 01e0 FEFFFFEB 		.loc 1 294 0
+ 280 01e4 FEFFFFEB 		ldr	r0, .L43+32
+ 293:c:\code\arm\armlib/net\dhcp.c **** 	// print server IP address
+ 294:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("SvIpAddr: ");	netPrintIPAddr(htonl(packet->bootp.siaddr));	rprintfCRLF();
+ 281              	r
+ 282 01e8 90009FE5 		ldrb	r0, [r4, #20]	@ zero_extendqisi2
+ 283 01ec FEFFFFEB 		ldrb	r3, [r4, #21]	@ zero_extendqisi2
+ 284 01f0 1400D4E5 		orr	r0, r0, r3, asl #8
+ 285 01f4 1530D4E5 		ldrb	r3, [r4, #22]	@ zero_extendqisi2
+ 286 01f8 030480E1 		orr	r0, r0, r3, asl #16
+ 287 01fc 1630D4E5 		ldrb	r3, [r4, #23]	@ zero_extendqisi2
+ 288 0200 030880E1 		orr	r0, r0, r3, asl #24
+ 289 0204 1730D4E5 		bl	htonl
+ 290 0208 030C80E1 		bl	netPrintIPAddr
+ 291 020c FEFFFFEB 		bl	rprintfCRLF
+ 292 0210 FEFFFFEB 		.loc 1 296 0
+ 293 0214 FEFFFFEB 		ldr	r0, .L43+36
+ 295:c:\code\arm\armlib/net\dhcp.c **** 	// print gateway IP address
+ 296:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("GwIpAddr: ");	netPrintIPAddr(htonl(packet->bootp.giaddr));	rprintfCRLF();
+ 294              	r
+ 295 0218 64009FE5 		ldrb	r0, [r4, #24]	@ zero_extendqisi2
+ 296 021c FEFFFFEB 		ldrb	r3, [r4, #25]	@ zero_extendqisi2
+ 297 0220 1800D4E5 		orr	r0, r0, r3, asl #8
+ 298 0224 1930D4E5 		ldrb	r3, [r4, #26]	@ zero_extendqisi2
+ 299 0228 030480E1 		orr	r0, r0, r3, asl #16
+ 300 022c 1A30D4E5 		ldrb	r3, [r4, #27]	@ zero_extendqisi2
+ 301 0230 030880E1 		orr	r0, r0, r3, asl #24
+ 302 0234 1B30D4E5 		bl	htonl
+ 303 0238 030C80E1 		bl	netPrintIPAddr
+ 304 023c FEFFFFEB 		bl	rprintfCRLF
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 12
+
+
+ 305 0240 FEFFFFEB 		.loc 1 298 0
+ 306 0244 FEFFFFEB 		ldr	r0, .L43+40
+ 297:c:\code\arm\armlib/net\dhcp.c **** 	// print client hardware address
+ 298:c:\code\arm\armlib/net\dhcp.c **** 	rprintfProgStrM("ClHwAddr: ");	netPrintEthAddr((struct netEthAddr*)packet->bootp.chaddr);	rprintfC
+ 307              	r
+ 308 0248 38009FE5 		add	r0, r4, #28
+ 309 024c FEFFFFEB 		bl	netPrintEthAddr
+ 310 0250 1C0084E2 		bl	rprintfCRLF
+ 311 0254 FEFFFFEB 		.loc 1 299 0
+ 312 0258 FEFFFFEB 		ldmfd	sp!, {r4, pc}
+ 299:c:\code\arm\armlib/net\dhcp.c **** }
+ 313              		.align	2
+ 314 025c 1080BDE8 	.L43:
+ 315              		.word	.LC0
+ 316              		.word	.LC1
+ 317              		.word	.LC2
+ 318 0260 00000000 		.word	.LC3
+ 319 0264 10000000 		.word	.LC4
+ 320 0268 1C000000 		.word	.LC5
+ 321 026c 28000000 		.word	.LC6
+ 322 0270 34000000 		.word	.LC7
+ 323 0274 3C000000 		.word	.LC8
+ 324 0278 4C000000 		.word	.LC9
+ 325 027c 58000000 		.word	.LC10
+ 326 0280 64000000 	.LFE9:
+ 327 0284 70000000 		.size	dhcpPrintHeader, .-dhcpPrintHeader
+ 328 0288 7C000000 		.align	2
+ 329              		.global	dhcpInit
+ 330              		.type	dhcpInit, %function
+ 331              	dhcpInit:
+ 332              	.LFB2:
+ 333              		.loc 1 31 0
+ 334              		@ args = 0, pretend = 0, frame = 8
+ 335              		@ frame_needed = 0, uses_anonymous_args = 0
+ 336              		str	lr, [sp, #-4]!
+ 337              	.LCFI3:
+ 338              		sub	sp, sp, #8
+ 339 028c 04E02DE5 	.LCFI4:
+ 340              		.loc 1 35 0
+ 341 0290 08D04DE2 		add	r0, sp, #2
+ 342              		bl	nicGetMacAddress
+ 343              		.loc 1 37 0
+ 344 0294 02008DE2 		ldr	r2, [sp, #2]
+ 345 0298 FEFFFFEB 		ldr	r3, .L47
+ 346              		str	r2, [r3, #0]
+ 347 029c 02209DE5 		.loc 1 39 0
+ 348 02a0 14309FE5 		mov	r2, #0
+ 349 02a4 002083E5 		ldr	r3, .L47+4
+ 350              		str	r2, [r3, #0]
+ 351 02a8 0020A0E3 		.loc 1 40 0
+ 352 02ac 0C309FE5 		add	sp, sp, #8
+ 353 02b0 002083E5 		ldmfd	sp!, {pc}
+ 354              	.L48:
+ 355 02b4 08D08DE2 		.align	2
+ 356 02b8 0080BDE8 	.L47:
+ 357              		.word	DhcpTransactID
+ 358              		.word	DhcpLeaseTime
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 13
+
+
+ 359              	.LFE2:
+ 360 02bc 00000000 		.size	dhcpInit, .-dhcpInit
+ 361 02c0 00000000 		.align	2
+ 362              		.global	dhcpRequest
+ 363              		.type	dhcpRequest, %function
+ 364              	dhcpRequest:
+ 365              	.LFB4:
+ 366              		.loc 1 124 0
+ 367              		@ args = 0, pretend = 0, frame = 4
+ 368              		@ frame_needed = 0, uses_anonymous_args = 0
+ 369              		stmfd	sp!, {r4, r5, r6, r7, lr}
+ 370              	.LCFI5:
+ 371              		sub	sp, sp, #4
+ 372 02c4 F0402DE9 	.LCFI6:
+ 373              		.loc 1 128 0
+ 374 02c8 04D04DE2 		bl	netstackGetBuffer
+ 375              		mov	r6, r0
+ 376              		add	r5, r0, #42
+ 377 02cc FEFFFFEB 	.LVL24:
+ 378 02d0 0060A0E1 		.loc 1 131 0
+ 379 02d4 2A5080E2 		mov	r7, #1
+ 380              		strb	r7, [r0, #42]
+ 381              		.loc 1 132 0
+ 382 02d8 0170A0E3 		strb	r7, [r5, #1]
+ 383 02dc 2A70C0E5 		.loc 1 133 0
+ 384              		mov	r3, #6
+ 385 02e0 0170C5E5 		strb	r3, [r5, #2]
+ 386              		.loc 1 134 0
+ 387 02e4 0630A0E3 		bl	ipGetConfig
+ 388 02e8 0230C5E5 		ldr	r0, [r0, #0]
+ 389              		bl	htonl
+ 390 02ec FEFFFFEB 		mov	r4, #0
+ 391 02f0 000090E5 		strb	r0, [r5, #12]
+ 392 02f4 FEFFFFEB 		mov	r3, r0, lsr #8
+ 393 02f8 0040A0E3 		strb	r3, [r5, #13]
+ 394 02fc 0C00C5E5 		mov	r3, r0, lsr #16
+ 395 0300 2034A0E1 		strb	r3, [r5, #14]
+ 396 0304 0D30C5E5 		mov	r0, r0, lsr #24
+ 397 0308 2038A0E1 		strb	r0, [r5, #15]
+ 398 030c 0E30C5E5 		.loc 1 135 0
+ 399 0310 200CA0E1 		strb	r4, [r5, #16]
+ 400 0314 0F00C5E5 		strb	r4, [r5, #17]
+ 401              		strb	r4, [r5, #18]
+ 402 0318 1040C5E5 		strb	r4, [r5, #19]
+ 403 031c 1140C5E5 		.loc 1 136 0
+ 404 0320 1240C5E5 		strb	r4, [r5, #20]
+ 405 0324 1340C5E5 		strb	r4, [r5, #21]
+ 406              		strb	r4, [r5, #22]
+ 407 0328 1440C5E5 		strb	r4, [r5, #23]
+ 408 032c 1540C5E5 		.loc 1 137 0
+ 409 0330 1640C5E5 		strb	r4, [r5, #24]
+ 410 0334 1740C5E5 		strb	r4, [r5, #25]
+ 411              		strb	r4, [r5, #26]
+ 412 0338 1840C5E5 		strb	r4, [r5, #27]
+ 413 033c 1940C5E5 		.loc 1 138 0
+ 414 0340 1A40C5E5 		add	r0, r6, #70
+ 415 0344 1B40C5E5 		bl	nicGetMacAddress
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 14
+
+
+ 416              		.loc 1 139 0
+ 417 0348 460086E2 		ldr	r2, .L51
+ 418 034c FEFFFFEB 		ldrb	r3, [r2, #0]	@ zero_extendqisi2
+ 419              		strb	r3, [r5, #4]
+ 420 0350 78209FE5 		ldrb	r3, [r2, #1]	@ zero_extendqisi2
+ 421 0354 0030D2E5 		strb	r3, [r5, #5]
+ 422 0358 0430C5E5 		ldrb	r3, [r2, #2]	@ zero_extendqisi2
+ 423 035c 0130D2E5 		strb	r3, [r5, #6]
+ 424 0360 0530C5E5 		ldrb	r3, [r2, #3]	@ zero_extendqisi2
+ 425 0364 0230D2E5 		strb	r3, [r5, #7]
+ 426 0368 0630C5E5 		.loc 1 140 0
+ 427 036c 0330D2E5 		strb	r4, [r5, #10]
+ 428 0370 0730C5E5 		strb	r7, [r5, #11]
+ 429              		.loc 1 144 0
+ 430 0374 0A40C5E5 		orr	r2, r4, #99
+ 431 0378 0B70C5E5 		strb	r2, [r6, #278]
+ 432              		mvn	r3, #125
+ 433 037c 632084E3 		strb	r3, [r6, #279]
+ 434 0380 1621C6E5 		orr	r4, r4, #83
+ 435 0384 7D30E0E3 		strb	r4, [r5, #238]
+ 436 0388 1731C6E5 		strb	r2, [r6, #281]
+ 437 038c 534084E3 		.loc 1 146 0
+ 438 0390 EE40C5E5 		add	r3, sp, #4
+ 439 0394 1921C6E5 		str	r7, [r3, #-4]!
+ 440              	.LVL25:
+ 441 0398 04308DE2 		.loc 1 147 0
+ 442 039c 047023E5 		add	r0, r5, #240
+ 443              		mov	r1, #53
+ 444              		mov	r2, r7
+ 445 03a0 F00085E2 		mov	r3, sp
+ 446 03a4 3510A0E3 		bl	dhcpSetOption
+ 447 03a8 0720A0E1 		.loc 1 155 0
+ 448 03ac 0D30A0E1 		mvn	r0, #0
+ 449 03b0 FEFFFFEB 		mov	r1, #67
+ 450              		mov	r2, #244
+ 451 03b4 0000E0E3 		mov	r3, r5
+ 452 03b8 4310A0E3 		bl	udpSend
+ 453 03bc F420A0E3 		.loc 1 156 0
+ 454 03c0 0530A0E1 		add	sp, sp, #4
+ 455 03c4 FEFFFFEB 		ldmfd	sp!, {r4, r5, r6, r7, pc}
+ 456              	.L52:
+ 457 03c8 04D08DE2 		.align	2
+ 458 03cc F080BDE8 	.L51:
+ 459              		.word	DhcpTransactID
+ 460              	.LFE4:
+ 461              		.size	dhcpRequest, .-dhcpRequest
+ 462 03d0 00000000 		.align	2
+ 463              		.global	dhcpRelease
+ 464              		.type	dhcpRelease, %function
+ 465              	dhcpRelease:
+ 466              	.LFB5:
+ 467              		.loc 1 159 0
+ 468              		@ args = 0, pretend = 0, frame = 4
+ 469              		@ frame_needed = 0, uses_anonymous_args = 0
+ 470              		stmfd	sp!, {r4, r5, r6, r7, r8, sl, lr}
+ 471              	.LCFI7:
+ 472              		sub	sp, sp, #4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 15
+
+
+ 473 03d4 F0452DE9 	.LCFI8:
+ 474              		.loc 1 164 0
+ 475 03d8 04D04DE2 		bl	netstackGetBuffer
+ 476              		mov	r8, r0
+ 477              		add	r4, r0, #42
+ 478 03dc FEFFFFEB 	.LVL26:
+ 479 03e0 0080A0E1 		.loc 1 167 0
+ 480 03e4 2A4080E2 		mov	r7, #1
+ 481              		strb	r7, [r0, #42]
+ 482              		.loc 1 168 0
+ 483 03e8 0170A0E3 		strb	r7, [r4, #1]
+ 484 03ec 2A70C0E5 		.loc 1 169 0
+ 485              		mov	r3, #6
+ 486 03f0 0170C4E5 		strb	r3, [r4, #2]
+ 487              		.loc 1 170 0
+ 488 03f4 0630A0E3 		bl	ipGetConfig
+ 489 03f8 0230C4E5 		ldr	r0, [r0, #0]
+ 490              		bl	htonl
+ 491 03fc FEFFFFEB 		mov	r5, #0
+ 492 0400 000090E5 		strb	r0, [r4, #12]
+ 493 0404 FEFFFFEB 		mov	r3, r0, lsr #8
+ 494 0408 0050A0E3 		strb	r3, [r4, #13]
+ 495 040c 0C00C4E5 		mov	r3, r0, lsr #16
+ 496 0410 2034A0E1 		strb	r3, [r4, #14]
+ 497 0414 0D30C4E5 		mov	r0, r0, lsr #24
+ 498 0418 2038A0E1 		strb	r0, [r4, #15]
+ 499 041c 0E30C4E5 		.loc 1 171 0
+ 500 0420 200CA0E1 		strb	r5, [r4, #16]
+ 501 0424 0F00C4E5 		strb	r5, [r4, #17]
+ 502              		strb	r5, [r4, #18]
+ 503 0428 1050C4E5 		strb	r5, [r4, #19]
+ 504 042c 1150C4E5 		.loc 1 172 0
+ 505 0430 1250C4E5 		strb	r5, [r4, #20]
+ 506 0434 1350C4E5 		strb	r5, [r4, #21]
+ 507              		strb	r5, [r4, #22]
+ 508 0438 1450C4E5 		strb	r5, [r4, #23]
+ 509 043c 1550C4E5 		.loc 1 173 0
+ 510 0440 1650C4E5 		strb	r5, [r4, #24]
+ 511 0444 1750C4E5 		strb	r5, [r4, #25]
+ 512              		strb	r5, [r4, #26]
+ 513 0448 1850C4E5 		strb	r5, [r4, #27]
+ 514 044c 1950C4E5 		.loc 1 174 0
+ 515 0450 1A50C4E5 		add	r0, r8, #70
+ 516 0454 1B50C4E5 		bl	nicGetMacAddress
+ 517              		.loc 1 175 0
+ 518 0458 460088E2 		ldr	r2, .L55
+ 519 045c FEFFFFEB 		ldrb	r3, [r2, #0]	@ zero_extendqisi2
+ 520              		strb	r3, [r4, #4]
+ 521 0460 CC209FE5 		ldrb	r3, [r2, #1]	@ zero_extendqisi2
+ 522 0464 0030D2E5 		strb	r3, [r4, #5]
+ 523 0468 0430C4E5 		ldrb	r3, [r2, #2]	@ zero_extendqisi2
+ 524 046c 0130D2E5 		strb	r3, [r4, #6]
+ 525 0470 0530C4E5 		ldrb	r3, [r2, #3]	@ zero_extendqisi2
+ 526 0474 0230D2E5 		strb	r3, [r4, #7]
+ 527 0478 0630C4E5 		.loc 1 176 0
+ 528 047c 0330D2E5 		strb	r5, [r4, #10]
+ 529 0480 0730C4E5 		strb	r7, [r4, #11]
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 16
+
+
+ 530              		.loc 1 180 0
+ 531 0484 0A50C4E5 		orr	r2, r5, #99
+ 532 0488 0B70C4E5 		strb	r2, [r8, #278]
+ 533              		mvn	r3, #125
+ 534 048c 632085E3 		strb	r3, [r8, #279]
+ 535 0490 1621C8E5 		orr	r3, r5, #83
+ 536 0494 7D30E0E3 		strb	r3, [r4, #238]
+ 537 0498 1731C8E5 		strb	r2, [r8, #281]
+ 538 049c 533085E3 		.loc 1 182 0
+ 539 04a0 EE30C4E5 		add	r6, sp, #4
+ 540 04a4 1921C8E5 		mov	r3, #7
+ 541              		str	r3, [r6, #-4]!
+ 542 04a8 04608DE2 	.LVL27:
+ 543 04ac 0730A0E3 		.loc 1 183 0
+ 544 04b0 043026E5 		add	r0, r4, #240
+ 545              		mov	r1, #53
+ 546              		mov	r2, r7
+ 547 04b4 F00084E2 		mov	r3, sp
+ 548 04b8 3510A0E3 		bl	dhcpSetOption
+ 549 04bc 0720A0E1 		mov	r7, r0
+ 550 04c0 0D30A0E1 	.LVL28:
+ 551 04c4 FEFFFFEB 		.loc 1 185 0
+ 552 04c8 0070A0E1 		ldr	sl, .L55+4
+ 553              		ldr	r0, [sl, #0]
+ 554              		bl	htonl
+ 555 04cc 64A09FE5 		str	r0, [sp, #0]
+ 556 04d0 00009AE5 		.loc 1 186 0
+ 557 04d4 FEFFFFEB 		mov	r0, r7
+ 558 04d8 00008DE5 		mov	r1, #54
+ 559              		mov	r2, #4
+ 560 04dc 0700A0E1 		mov	r3, sp
+ 561 04e0 3610A0E3 		bl	dhcpSetOption
+ 562 04e4 0420A0E3 		.loc 1 188 0
+ 563 04e8 0D30A0E1 		mov	r1, #50
+ 564 04ec FEFFFFEB 		mov	r2, #4
+ 565              		add	r3, r8, #54
+ 566 04f0 3210A0E3 		bl	dhcpSetOption
+ 567 04f4 0420A0E3 		.loc 1 196 0
+ 568 04f8 363088E2 		ldr	r0, [sl, #0]
+ 569 04fc FEFFFFEB 		mov	r1, #67
+ 570              		mov	r2, #256
+ 571 0500 00009AE5 		mov	r3, r4
+ 572 0504 4310A0E3 		bl	udpSend
+ 573 0508 012CA0E3 		.loc 1 199 0
+ 574 050c 0430A0E1 		mov	r0, r5
+ 575 0510 FEFFFFEB 		mov	r1, r5
+ 576              		mov	r2, r5
+ 577 0514 0500A0E1 		bl	ipSetConfig
+ 578 0518 0510A0E1 		.loc 1 200 0
+ 579 051c 0520A0E1 		ldr	r3, .L55+8
+ 580 0520 FEFFFFEB 		str	r5, [r3, #0]
+ 581              		.loc 1 201 0
+ 582 0524 10309FE5 		add	sp, sp, #4
+ 583 0528 005083E5 		ldmfd	sp!, {r4, r5, r6, r7, r8, sl, pc}
+ 584              	.L56:
+ 585 052c 04D08DE2 		.align	2
+ 586 0530 F085BDE8 	.L55:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 17
+
+
+ 587              		.word	DhcpTransactID
+ 588              		.word	DhcpServerIP
+ 589              		.word	DhcpLeaseTime
+ 590 0534 00000000 	.LFE5:
+ 591 0538 00000000 		.size	dhcpRelease, .-dhcpRelease
+ 592 053c 00000000 		.align	2
+ 593              		.global	dhcpIn
+ 594              		.type	dhcpIn, %function
+ 595              	dhcpIn:
+ 596              	.LFB3:
+ 597              		.loc 1 43 0
+ 598              		@ args = 0, pretend = 0, frame = 12
+ 599              		@ frame_needed = 0, uses_anonymous_args = 0
+ 600              	.LVL29:
+ 601              		stmfd	sp!, {r4, r5, r6, r7, r8, sl, lr}
+ 602              	.LCFI9:
+ 603              		sub	sp, sp, #12
+ 604 0540 F0452DE9 	.LCFI10:
+ 605              		mov	r8, r1
+ 606 0544 0CD04DE2 		.loc 1 56 0
+ 607              		ldrb	r3, [r1, #0]	@ zero_extendqisi2
+ 608 0548 0180A0E1 		cmp	r3, #2
+ 609              		bne	.L64
+ 610 054c 0030D1E5 		ldrb	r3, [r1, #4]	@ zero_extendqisi2
+ 611 0550 020053E3 		ldrb	r2, [r1, #5]	@ zero_extendqisi2
+ 612 0554 6600001A 		orr	r3, r3, r2, asl #8
+ 613 0558 0430D1E5 		ldrb	r2, [r1, #6]	@ zero_extendqisi2
+ 614 055c 0520D1E5 		orr	r3, r3, r2, asl #16
+ 615 0560 023483E1 		ldrb	r2, [r1, #7]	@ zero_extendqisi2
+ 616 0564 0620D1E5 		orr	r3, r3, r2, asl #24
+ 617 0568 023883E1 		ldr	r2, .L65
+ 618 056c 0720D1E5 		ldr	r2, [r2, #0]
+ 619 0570 023C83E1 		cmp	r3, r2
+ 620 0574 80219FE5 		bne	.L64
+ 621 0578 002092E5 		.loc 1 61 0
+ 622 057c 020053E1 		add	sl, r1, #240
+ 623 0580 5B00001A 		mov	r0, sl
+ 624              	.LVL30:
+ 625 0584 F0A081E2 		mov	r1, #53
+ 626 0588 0A00A0E1 	.LVL31:
+ 627              		mov	r2, #1
+ 628 058c 3510A0E3 		add	r3, sp, #11
+ 629              		bl	dhcpGetOption
+ 630 0590 0120A0E3 	.LVL32:
+ 631 0594 0B308DE2 		.loc 1 66 0
+ 632 0598 FEFFFFEB 		ldrb	r3, [sp, #11]	@ zero_extendqisi2
+ 633              		cmp	r3, #2
+ 634              		bne	.L61
+ 635 059c 0B30DDE5 		.loc 1 69 0
+ 636 05a0 020053E3 		add	r6, sp, #4
+ 637 05a4 2B00001A 		mov	r0, sl
+ 638              		mov	r1, #54
+ 639 05a8 04608DE2 		mov	r2, #4
+ 640 05ac 0A00A0E1 		mov	r3, r6
+ 641 05b0 3610A0E3 		bl	dhcpGetOption
+ 642 05b4 0420A0E3 		.loc 1 75 0
+ 643 05b8 0630A0E1 		mov	r4, #1
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 18
+
+
+ 644 05bc FEFFFFEB 		strb	r4, [r8, #0]
+ 645              		.loc 1 77 0
+ 646 05c0 0140A0E3 		mov	r5, #3
+ 647 05c4 0040C8E5 		str	r5, [sp, #0]
+ 648              	.LVL33:
+ 649 05c8 0350A0E3 		.loc 1 78 0
+ 650 05cc 00508DE5 		mov	r7, sp
+ 651              		mov	r0, sl
+ 652              		mov	r1, #53
+ 653 05d0 0D70A0E1 		mov	r2, r4
+ 654 05d4 0A00A0E1 		mov	r3, sp
+ 655 05d8 3510A0E3 		bl	dhcpSetOption
+ 656 05dc 0420A0E1 		.loc 1 80 0
+ 657 05e0 0D30A0E1 		mov	r1, #54
+ 658 05e4 FEFFFFEB 		mov	r2, #4
+ 659              		mov	r3, r6
+ 660 05e8 3610A0E3 		bl	dhcpSetOption
+ 661 05ec 0420A0E3 		.loc 1 82 0
+ 662 05f0 0630A0E1 		mov	r1, #50
+ 663 05f4 FEFFFFEB 		mov	r2, #4
+ 664              		add	r3, r8, #16
+ 665 05f8 3210A0E3 		bl	dhcpSetOption
+ 666 05fc 0420A0E3 		.loc 1 84 0
+ 667 0600 103088E2 		strb	r4, [sp, #0]
+ 668 0604 FEFFFFEB 		.loc 1 85 0
+ 669              		strb	r5, [sp, #1]
+ 670 0608 0040CDE5 		.loc 1 86 0
+ 671              		mov	r3, #6
+ 672 060c 0150CDE5 		strb	r3, [sp, #2]
+ 673              		.loc 1 87 0
+ 674 0610 0630A0E3 		add	r3, r3, #9
+ 675 0614 0230CDE5 		strb	r3, [sp, #3]
+ 676              		.loc 1 88 0
+ 677 0618 093083E2 		mov	r1, #55
+ 678 061c 0330CDE5 		mov	r2, #4
+ 679              		mov	r3, sp
+ 680 0620 3710A0E3 		bl	dhcpSetOption
+ 681 0624 0420A0E3 	.LVL34:
+ 682 0628 0D30A0E1 		.loc 1 94 0
+ 683 062c FEFFFFEB 		ldr	r0, [sp, #4]
+ 684              		bl	htonl
+ 685              		ldr	r3, .L65+4
+ 686 0630 04009DE5 		str	r0, [r3, #0]
+ 687 0634 FEFFFFEB 		.loc 1 95 0
+ 688 0638 C0309FE5 		mov	r1, #67
+ 689 063c 000083E5 		mov	r2, #260
+ 690              		add	r2, r2, #2
+ 691 0640 4310A0E3 		mov	r3, r8
+ 692 0644 412FA0E3 		bl	udpSend
+ 693 0648 022082E2 		b	.L64
+ 694 064c 0830A0E1 	.LVL35:
+ 695 0650 FEFFFFEB 	.L61:
+ 696 0654 260000EA 		.loc 1 98 0
+ 697              		cmp	r3, #5
+ 698              		bne	.L64
+ 699              		.loc 1 101 0
+ 700 0658 050053E3 		mov	r4, sp
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 19
+
+
+ 701 065c 2400001A 		mov	r0, sl
+ 702              		mov	r1, #1
+ 703 0660 0D40A0E1 		mov	r2, #4
+ 704 0664 0A00A0E1 		mov	r3, sp
+ 705 0668 0110A0E3 		bl	dhcpGetOption
+ 706 066c 0420A0E3 	.LVL36:
+ 707 0670 0D30A0E1 		.loc 1 102 0
+ 708 0674 FEFFFFEB 		ldr	r0, [sp, #0]
+ 709              		bl	htonl
+ 710              		mov	r6, r0
+ 711 0678 00009DE5 	.LVL37:
+ 712 067c FEFFFFEB 		.loc 1 104 0
+ 713 0680 0060A0E1 		mov	r0, sl
+ 714              		mov	r1, #3
+ 715              		mov	r2, #4
+ 716 0684 0A00A0E1 		mov	r3, sp
+ 717 0688 0310A0E3 		bl	dhcpGetOption
+ 718 068c 0420A0E3 		.loc 1 105 0
+ 719 0690 0D30A0E1 		ldr	r0, [sp, #0]
+ 720 0694 FEFFFFEB 		bl	htonl
+ 721              		mov	r5, r0
+ 722 0698 00009DE5 	.LVL38:
+ 723 069c FEFFFFEB 		.loc 1 107 0
+ 724 06a0 0050A0E1 		mov	r0, sl
+ 725              		mov	r1, #51
+ 726              		mov	r2, #4
+ 727 06a4 0A00A0E1 		mov	r3, sp
+ 728 06a8 3310A0E3 		bl	dhcpGetOption
+ 729 06ac 0420A0E3 		.loc 1 108 0
+ 730 06b0 0D30A0E1 		ldr	r0, [sp, #0]
+ 731 06b4 FEFFFFEB 		bl	htonl
+ 732              		ldr	r3, .L65+8
+ 733 06b8 00009DE5 		str	r0, [r3, #0]
+ 734 06bc FEFFFFEB 		.loc 1 111 0
+ 735 06c0 3C309FE5 		ldrb	r0, [r8, #16]	@ zero_extendqisi2
+ 736 06c4 000083E5 		ldrb	r3, [r8, #17]	@ zero_extendqisi2
+ 737              		orr	r0, r0, r3, asl #8
+ 738 06c8 1000D8E5 		ldrb	r3, [r8, #18]	@ zero_extendqisi2
+ 739 06cc 1130D8E5 		orr	r0, r0, r3, asl #16
+ 740 06d0 030480E1 		ldrb	r3, [r8, #19]	@ zero_extendqisi2
+ 741 06d4 1230D8E5 		orr	r0, r0, r3, asl #24
+ 742 06d8 030880E1 		bl	htonl
+ 743 06dc 1330D8E5 		mov	r1, r6
+ 744 06e0 030C80E1 		mov	r2, r5
+ 745 06e4 FEFFFFEB 		bl	ipSetConfig
+ 746 06e8 0610A0E1 	.LVL39:
+ 747 06ec 0520A0E1 	.L64:
+ 748 06f0 FEFFFFEB 		.loc 1 121 0
+ 749              		add	sp, sp, #12
+ 750              		ldmfd	sp!, {r4, r5, r6, r7, r8, sl, pc}
+ 751              	.L66:
+ 752 06f4 0CD08DE2 		.align	2
+ 753 06f8 F085BDE8 	.L65:
+ 754              		.word	DhcpTransactID
+ 755              		.word	DhcpServerIP
+ 756              		.word	DhcpLeaseTime
+ 757 06fc 00000000 	.LFE3:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 20
+
+
+ 758 0700 00000000 		.size	dhcpIn, .-dhcpIn
+ 759 0704 00000000 		.comm	DhcpServerIP,4,4
+ 760              		.comm	DhcpTransactID,4,4
+ 761              		.comm	DhcpLeaseTime,4,4
+ 762              		.section	.debug_frame,"",%progbits
+ 763              	.Lframe0:
+ 764              		.4byte	.LECIE0-.LSCIE0
+ 765              	.LSCIE0:
+ 766              		.4byte	0xffffffff
+ 767 0000 0C000000 		.byte	0x1
+ 768              		.ascii	"\000"
+ 769 0004 FFFFFFFF 		.uleb128 0x1
+ 770 0008 01       		.sleb128 -4
+ 771 0009 00       		.byte	0xe
+ 772 000a 01       		.byte	0xc
+ 773 000b 7C       		.uleb128 0xd
+ 774 000c 0E       		.uleb128 0x0
+ 775 000d 0C       		.align	2
+ 776 000e 0D       	.LECIE0:
+ 777 000f 00       	.LSFDE0:
+ 778              		.4byte	.LEFDE0-.LASFDE0
+ 779              	.LASFDE0:
+ 780              		.4byte	.Lframe0
+ 781 0010 0C000000 		.4byte	.LFB6
+ 782              		.4byte	.LFE6-.LFB6
+ 783 0014 00000000 		.align	2
+ 784 0018 00000000 	.LEFDE0:
+ 785 001c 1C000000 	.LSFDE2:
+ 786              		.4byte	.LEFDE2-.LASFDE2
+ 787              	.LASFDE2:
+ 788              		.4byte	.Lframe0
+ 789 0020 14000000 		.4byte	.LFB7
+ 790              		.4byte	.LFE7-.LFB7
+ 791 0024 00000000 		.byte	0x4
+ 792 0028 1C000000 		.4byte	.LCFI0-.LFB7
+ 793 002c 88000000 		.byte	0xe
+ 794 0030 44       		.uleb128 0x4
+ 795              		.byte	0x8e
+ 796 0031 0E       		.uleb128 0x1
+ 797 0032 04       		.align	2
+ 798 0033 8E       	.LEFDE2:
+ 799 0034 01       	.LSFDE4:
+ 800 0035 000000   		.4byte	.LEFDE4-.LASFDE4
+ 801              	.LASFDE4:
+ 802              		.4byte	.Lframe0
+ 803 0038 14000000 		.4byte	.LFB8
+ 804              		.4byte	.LFE8-.LFB8
+ 805 003c 00000000 		.byte	0x4
+ 806 0040 A4000000 		.4byte	.LCFI1-.LFB8
+ 807 0044 64000000 		.byte	0xe
+ 808 0048 44       		.uleb128 0x4
+ 809              		.byte	0x8e
+ 810 0049 0E       		.uleb128 0x1
+ 811 004a 04       		.align	2
+ 812 004b 8E       	.LEFDE4:
+ 813 004c 01       	.LSFDE6:
+ 814 004d 000000   		.4byte	.LEFDE6-.LASFDE6
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 21
+
+
+ 815              	.LASFDE6:
+ 816              		.4byte	.Lframe0
+ 817 0050 14000000 		.4byte	.LFB9
+ 818              		.4byte	.LFE9-.LFB9
+ 819 0054 00000000 		.byte	0x4
+ 820 0058 08010000 		.4byte	.LCFI2-.LFB9
+ 821 005c 84010000 		.byte	0xe
+ 822 0060 44       		.uleb128 0x8
+ 823              		.byte	0x8e
+ 824 0061 0E       		.uleb128 0x1
+ 825 0062 08       		.byte	0x84
+ 826 0063 8E       		.uleb128 0x2
+ 827 0064 01       		.align	2
+ 828 0065 84       	.LEFDE6:
+ 829 0066 02       	.LSFDE8:
+ 830 0067 00       		.4byte	.LEFDE8-.LASFDE8
+ 831              	.LASFDE8:
+ 832              		.4byte	.Lframe0
+ 833 0068 14000000 		.4byte	.LFB2
+ 834              		.4byte	.LFE2-.LFB2
+ 835 006c 00000000 		.byte	0x4
+ 836 0070 8C020000 		.4byte	.LCFI3-.LFB2
+ 837 0074 38000000 		.byte	0xe
+ 838 0078 44       		.uleb128 0x4
+ 839              		.byte	0x4
+ 840 0079 0E       		.4byte	.LCFI4-.LCFI3
+ 841 007a 04       		.byte	0xe
+ 842 007b 44       		.uleb128 0xc
+ 843              		.byte	0x8e
+ 844 007c 0E       		.uleb128 0x1
+ 845 007d 0C       		.align	2
+ 846 007e 8E       	.LEFDE8:
+ 847 007f 01       	.LSFDE10:
+ 848              		.4byte	.LEFDE10-.LASFDE10
+ 849              	.LASFDE10:
+ 850              		.4byte	.Lframe0
+ 851 0080 1C000000 		.4byte	.LFB4
+ 852              		.4byte	.LFE4-.LFB4
+ 853 0084 00000000 		.byte	0x4
+ 854 0088 C4020000 		.4byte	.LCFI5-.LFB4
+ 855 008c 10010000 		.byte	0xe
+ 856 0090 44       		.uleb128 0x14
+ 857              		.byte	0x4
+ 858 0091 0E       		.4byte	.LCFI6-.LCFI5
+ 859 0092 14       		.byte	0xe
+ 860 0093 44       		.uleb128 0x18
+ 861              		.byte	0x8e
+ 862 0094 0E       		.uleb128 0x1
+ 863 0095 18       		.byte	0x87
+ 864 0096 8E       		.uleb128 0x2
+ 865 0097 01       		.byte	0x86
+ 866 0098 87       		.uleb128 0x3
+ 867 0099 02       		.byte	0x85
+ 868 009a 86       		.uleb128 0x4
+ 869 009b 03       		.byte	0x84
+ 870 009c 85       		.uleb128 0x5
+ 871 009d 04       		.align	2
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 22
+
+
+ 872 009e 84       	.LEFDE10:
+ 873 009f 05       	.LSFDE12:
+ 874              		.4byte	.LEFDE12-.LASFDE12
+ 875              	.LASFDE12:
+ 876              		.4byte	.Lframe0
+ 877 00a0 20000000 		.4byte	.LFB5
+ 878              		.4byte	.LFE5-.LFB5
+ 879 00a4 00000000 		.byte	0x4
+ 880 00a8 D4030000 		.4byte	.LCFI7-.LFB5
+ 881 00ac 6C010000 		.byte	0xe
+ 882 00b0 44       		.uleb128 0x1c
+ 883              		.byte	0x4
+ 884 00b1 0E       		.4byte	.LCFI8-.LCFI7
+ 885 00b2 1C       		.byte	0xe
+ 886 00b3 44       		.uleb128 0x20
+ 887              		.byte	0x8e
+ 888 00b4 0E       		.uleb128 0x1
+ 889 00b5 20       		.byte	0x8a
+ 890 00b6 8E       		.uleb128 0x2
+ 891 00b7 01       		.byte	0x88
+ 892 00b8 8A       		.uleb128 0x3
+ 893 00b9 02       		.byte	0x87
+ 894 00ba 88       		.uleb128 0x4
+ 895 00bb 03       		.byte	0x86
+ 896 00bc 87       		.uleb128 0x5
+ 897 00bd 04       		.byte	0x85
+ 898 00be 86       		.uleb128 0x6
+ 899 00bf 05       		.byte	0x84
+ 900 00c0 85       		.uleb128 0x7
+ 901 00c1 06       		.align	2
+ 902 00c2 84       	.LEFDE12:
+ 903 00c3 07       	.LSFDE14:
+ 904              		.4byte	.LEFDE14-.LASFDE14
+ 905              	.LASFDE14:
+ 906              		.4byte	.Lframe0
+ 907 00c4 20000000 		.4byte	.LFB3
+ 908              		.4byte	.LFE3-.LFB3
+ 909 00c8 00000000 		.byte	0x4
+ 910 00cc 40050000 		.4byte	.LCFI9-.LFB3
+ 911 00d0 C8010000 		.byte	0xe
+ 912 00d4 44       		.uleb128 0x1c
+ 913              		.byte	0x4
+ 914 00d5 0E       		.4byte	.LCFI10-.LCFI9
+ 915 00d6 1C       		.byte	0xe
+ 916 00d7 44       		.uleb128 0x28
+ 917              		.byte	0x8e
+ 918 00d8 0E       		.uleb128 0x1
+ 919 00d9 28       		.byte	0x8a
+ 920 00da 8E       		.uleb128 0x2
+ 921 00db 01       		.byte	0x88
+ 922 00dc 8A       		.uleb128 0x3
+ 923 00dd 02       		.byte	0x87
+ 924 00de 88       		.uleb128 0x4
+ 925 00df 03       		.byte	0x86
+ 926 00e0 87       		.uleb128 0x5
+ 927 00e1 04       		.byte	0x85
+ 928 00e2 86       		.uleb128 0x6
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 23
+
+
+ 929 00e3 05       		.byte	0x84
+ 930 00e4 85       		.uleb128 0x7
+ 931 00e5 06       		.align	2
+ 932 00e6 84       	.LEFDE14:
+ 933 00e7 07       		.file 2 "c:\\programa\\winarm/arm-elf/include/stdint.h"
+ 934              		.file 3 "c:\\code\\arm\\armlib/net/dhcp.h"
+ 935              		.text
+ 936              	.Letext0:
+ 937              		.section	.debug_loc,"",%progbits
+ 938              	.Ldebug_loc0:
+ 939              	.LLST1:
+ 940              		.4byte	.LFB7-.Ltext0
+ 941              		.4byte	.LCFI0-.Ltext0
+ 942              		.2byte	0x1
+ 943 0000 1C000000 		.byte	0x5d
+ 944 0004 20000000 		.4byte	.LCFI0-.Ltext0
+ 945 0008 0100     		.4byte	.LFE7-.Ltext0
+ 946 000a 5D       		.2byte	0x2
+ 947 000b 20000000 		.byte	0x7d
+ 948 000f A4000000 		.sleb128 4
+ 949 0013 0200     		.4byte	0x0
+ 950 0015 7D       		.4byte	0x0
+ 951 0016 04       	.LLST2:
+ 952 0017 00000000 		.4byte	.LVL0-.Ltext0
+ 953 001b 00000000 		.4byte	.LVL1-.Ltext0
+ 954              		.2byte	0x1
+ 955 001f 1C000000 		.byte	0x50
+ 956 0023 2C000000 		.4byte	.LVL1-.Ltext0
+ 957 0027 0100     		.4byte	.LVL2-.Ltext0
+ 958 0029 50       		.2byte	0x1
+ 959 002a 2C000000 		.byte	0x53
+ 960 002e 30000000 		.4byte	.LVL7-.Ltext0
+ 961 0032 0100     		.4byte	.LVL8-.Ltext0
+ 962 0034 53       		.2byte	0x1
+ 963 0035 8C000000 		.byte	0x50
+ 964 0039 94000000 		.4byte	.LVL8-.Ltext0
+ 965 003d 0100     		.4byte	.LVL9-.Ltext0
+ 966 003f 50       		.2byte	0x1
+ 967 0040 94000000 		.byte	0x53
+ 968 0044 9C000000 		.4byte	0x0
+ 969 0048 0100     		.4byte	0x0
+ 970 004a 53       	.LLST3:
+ 971 004b 00000000 		.4byte	.LVL0-.Ltext0
+ 972 004f 00000000 		.4byte	.LVL4-.Ltext0
+ 973              		.2byte	0x1
+ 974 0053 1C000000 		.byte	0x51
+ 975 0057 68000000 		.4byte	.LVL5-.Ltext0
+ 976 005b 0100     		.4byte	.LFE7-.Ltext0
+ 977 005d 51       		.2byte	0x1
+ 978 005e 84000000 		.byte	0x51
+ 979 0062 A4000000 		.4byte	0x0
+ 980 0066 0100     		.4byte	0x0
+ 981 0068 51       	.LLST4:
+ 982 0069 00000000 		.4byte	.LVL0-.Ltext0
+ 983 006d 00000000 		.4byte	.LVL3-.Ltext0
+ 984              		.2byte	0x1
+ 985 0071 1C000000 		.byte	0x52
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 24
+
+
+ 986 0075 5C000000 		.4byte	.LVL3-.Ltext0
+ 987 0079 0100     		.4byte	.LVL7-.Ltext0
+ 988 007b 52       		.2byte	0x1
+ 989 007c 5C000000 		.byte	0x52
+ 990 0080 8C000000 		.4byte	.LVL7-.Ltext0
+ 991 0084 0100     		.4byte	.LFE7-.Ltext0
+ 992 0086 52       		.2byte	0x1
+ 993 0087 8C000000 		.byte	0x52
+ 994 008b A4000000 		.4byte	0x0
+ 995 008f 0100     		.4byte	0x0
+ 996 0091 52       	.LLST5:
+ 997 0092 00000000 		.4byte	.LVL0-.Ltext0
+ 998 0096 00000000 		.4byte	.LVL1-.Ltext0
+ 999              		.2byte	0x1
+ 1000 009a 1C000000 		.byte	0x53
+ 1001 009e 2C000000 		.4byte	.LVL1-.Ltext0
+ 1002 00a2 0100     		.4byte	.LFE7-.Ltext0
+ 1003 00a4 53       		.2byte	0x1
+ 1004 00a5 2C000000 		.byte	0x5c
+ 1005 00a9 A4000000 		.4byte	0x0
+ 1006 00ad 0100     		.4byte	0x0
+ 1007 00af 5C       	.LLST6:
+ 1008 00b0 00000000 		.4byte	.LVL4-.Ltext0
+ 1009 00b4 00000000 		.4byte	.LVL7-.Ltext0
+ 1010              		.2byte	0x1
+ 1011 00b8 68000000 		.byte	0x51
+ 1012 00bc 8C000000 		.4byte	0x0
+ 1013 00c0 0100     		.4byte	0x0
+ 1014 00c2 51       	.LLST7:
+ 1015 00c3 00000000 		.4byte	.LFB8-.Ltext0
+ 1016 00c7 00000000 		.4byte	.LCFI1-.Ltext0
+ 1017              		.2byte	0x1
+ 1018 00cb A4000000 		.byte	0x5d
+ 1019 00cf A8000000 		.4byte	.LCFI1-.Ltext0
+ 1020 00d3 0100     		.4byte	.LFE8-.Ltext0
+ 1021 00d5 5D       		.2byte	0x2
+ 1022 00d6 A8000000 		.byte	0x7d
+ 1023 00da 08010000 		.sleb128 4
+ 1024 00de 0200     		.4byte	0x0
+ 1025 00e0 7D       		.4byte	0x0
+ 1026 00e1 04       	.LLST8:
+ 1027 00e2 00000000 		.4byte	.LVL11-.Ltext0
+ 1028 00e6 00000000 		.4byte	.LVL12-.Ltext0
+ 1029              		.2byte	0x1
+ 1030 00ea A4000000 		.byte	0x50
+ 1031 00ee B4000000 		.4byte	.LVL12-.Ltext0
+ 1032 00f2 0100     		.4byte	.LVL13-.Ltext0
+ 1033 00f4 50       		.2byte	0x1
+ 1034 00f5 B4000000 		.byte	0x53
+ 1035 00f9 C0000000 		.4byte	.LVL13-.Ltext0
+ 1036 00fd 0100     		.4byte	.LVL17-.Ltext0
+ 1037 00ff 53       		.2byte	0x1
+ 1038 0100 C0000000 		.byte	0x5e
+ 1039 0104 D8000000 		.4byte	.LVL19-.Ltext0
+ 1040 0108 0100     		.4byte	.LVL19-.Ltext0
+ 1041 010a 5E       		.2byte	0x1
+ 1042 010b F8000000 		.byte	0x53
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 25
+
+
+ 1043 010f F8000000 		.4byte	.LVL19-.Ltext0
+ 1044 0113 0100     		.4byte	.LVL20-.Ltext0
+ 1045 0115 53       		.2byte	0x1
+ 1046 0116 F8000000 		.byte	0x50
+ 1047 011a FC000000 		.4byte	0x0
+ 1048 011e 0100     		.4byte	0x0
+ 1049 0120 50       	.LLST9:
+ 1050 0121 00000000 		.4byte	.LVL11-.Ltext0
+ 1051 0125 00000000 		.4byte	.LVL16-.Ltext0
+ 1052              		.2byte	0x1
+ 1053 0129 A4000000 		.byte	0x51
+ 1054 012d D4000000 		.4byte	.LVL19-.Ltext0
+ 1055 0131 0100     		.4byte	.LFE8-.Ltext0
+ 1056 0133 51       		.2byte	0x1
+ 1057 0134 F8000000 		.byte	0x51
+ 1058 0138 08010000 		.4byte	0x0
+ 1059 013c 0100     		.4byte	0x0
+ 1060 013e 51       	.LLST10:
+ 1061 013f 00000000 		.4byte	.LVL11-.Ltext0
+ 1062 0143 00000000 		.4byte	.LVL14-.Ltext0
+ 1063              		.2byte	0x1
+ 1064 0147 A4000000 		.byte	0x52
+ 1065 014b C4000000 		.4byte	.LVL15-.Ltext0
+ 1066 014f 0100     		.4byte	.LFE8-.Ltext0
+ 1067 0151 52       		.2byte	0x1
+ 1068 0152 C8000000 		.byte	0x52
+ 1069 0156 08010000 		.4byte	0x0
+ 1070 015a 0100     		.4byte	0x0
+ 1071 015c 52       	.LLST11:
+ 1072 015d 00000000 		.4byte	.LVL11-.Ltext0
+ 1073 0161 00000000 		.4byte	.LVL12-.Ltext0
+ 1074              		.2byte	0x1
+ 1075 0165 A4000000 		.byte	0x53
+ 1076 0169 B4000000 		.4byte	.LVL12-.Ltext0
+ 1077 016d 0100     		.4byte	.LFE8-.Ltext0
+ 1078 016f 53       		.2byte	0x1
+ 1079 0170 B4000000 		.byte	0x5c
+ 1080 0174 08010000 		.4byte	0x0
+ 1081 0178 0100     		.4byte	0x0
+ 1082 017a 5C       	.LLST12:
+ 1083 017b 00000000 		.4byte	.LFB9-.Ltext0
+ 1084 017f 00000000 		.4byte	.LCFI2-.Ltext0
+ 1085              		.2byte	0x1
+ 1086 0183 08010000 		.byte	0x5d
+ 1087 0187 0C010000 		.4byte	.LCFI2-.Ltext0
+ 1088 018b 0100     		.4byte	.LFE9-.Ltext0
+ 1089 018d 5D       		.2byte	0x2
+ 1090 018e 0C010000 		.byte	0x7d
+ 1091 0192 8C020000 		.sleb128 8
+ 1092 0196 0200     		.4byte	0x0
+ 1093 0198 7D       		.4byte	0x0
+ 1094 0199 08       	.LLST13:
+ 1095 019a 00000000 		.4byte	.LVL22-.Ltext0
+ 1096 019e 00000000 		.4byte	.LVL23-.Ltext0
+ 1097              		.2byte	0x1
+ 1098 01a2 08010000 		.byte	0x50
+ 1099 01a6 14010000 		.4byte	.LVL23-.Ltext0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 26
+
+
+ 1100 01aa 0100     		.4byte	.LFE9-.Ltext0
+ 1101 01ac 50       		.2byte	0x1
+ 1102 01ad 14010000 		.byte	0x54
+ 1103 01b1 8C020000 		.4byte	0x0
+ 1104 01b5 0100     		.4byte	0x0
+ 1105 01b7 54       	.LLST14:
+ 1106 01b8 00000000 		.4byte	.LFB2-.Ltext0
+ 1107 01bc 00000000 		.4byte	.LCFI3-.Ltext0
+ 1108              		.2byte	0x1
+ 1109 01c0 8C020000 		.byte	0x5d
+ 1110 01c4 90020000 		.4byte	.LCFI3-.Ltext0
+ 1111 01c8 0100     		.4byte	.LCFI4-.Ltext0
+ 1112 01ca 5D       		.2byte	0x2
+ 1113 01cb 90020000 		.byte	0x7d
+ 1114 01cf 94020000 		.sleb128 4
+ 1115 01d3 0200     		.4byte	.LCFI4-.Ltext0
+ 1116 01d5 7D       		.4byte	.LFE2-.Ltext0
+ 1117 01d6 04       		.2byte	0x2
+ 1118 01d7 94020000 		.byte	0x7d
+ 1119 01db C4020000 		.sleb128 12
+ 1120 01df 0200     		.4byte	0x0
+ 1121 01e1 7D       		.4byte	0x0
+ 1122 01e2 0C       	.LLST15:
+ 1123 01e3 00000000 		.4byte	.LFB4-.Ltext0
+ 1124 01e7 00000000 		.4byte	.LCFI5-.Ltext0
+ 1125              		.2byte	0x1
+ 1126 01eb C4020000 		.byte	0x5d
+ 1127 01ef C8020000 		.4byte	.LCFI5-.Ltext0
+ 1128 01f3 0100     		.4byte	.LCFI6-.Ltext0
+ 1129 01f5 5D       		.2byte	0x2
+ 1130 01f6 C8020000 		.byte	0x7d
+ 1131 01fa CC020000 		.sleb128 20
+ 1132 01fe 0200     		.4byte	.LCFI6-.Ltext0
+ 1133 0200 7D       		.4byte	.LFE4-.Ltext0
+ 1134 0201 14       		.2byte	0x2
+ 1135 0202 CC020000 		.byte	0x7d
+ 1136 0206 D4030000 		.sleb128 24
+ 1137 020a 0200     		.4byte	0x0
+ 1138 020c 7D       		.4byte	0x0
+ 1139 020d 18       	.LLST16:
+ 1140 020e 00000000 		.4byte	.LFB5-.Ltext0
+ 1141 0212 00000000 		.4byte	.LCFI7-.Ltext0
+ 1142              		.2byte	0x1
+ 1143 0216 D4030000 		.byte	0x5d
+ 1144 021a D8030000 		.4byte	.LCFI7-.Ltext0
+ 1145 021e 0100     		.4byte	.LCFI8-.Ltext0
+ 1146 0220 5D       		.2byte	0x2
+ 1147 0221 D8030000 		.byte	0x7d
+ 1148 0225 DC030000 		.sleb128 28
+ 1149 0229 0200     		.4byte	.LCFI8-.Ltext0
+ 1150 022b 7D       		.4byte	.LFE5-.Ltext0
+ 1151 022c 1C       		.2byte	0x2
+ 1152 022d DC030000 		.byte	0x7d
+ 1153 0231 40050000 		.sleb128 32
+ 1154 0235 0200     		.4byte	0x0
+ 1155 0237 7D       		.4byte	0x0
+ 1156 0238 20       	.LLST17:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 27
+
+
+ 1157 0239 00000000 		.4byte	.LFB3-.Ltext0
+ 1158 023d 00000000 		.4byte	.LCFI9-.Ltext0
+ 1159              		.2byte	0x1
+ 1160 0241 40050000 		.byte	0x5d
+ 1161 0245 44050000 		.4byte	.LCFI9-.Ltext0
+ 1162 0249 0100     		.4byte	.LCFI10-.Ltext0
+ 1163 024b 5D       		.2byte	0x2
+ 1164 024c 44050000 		.byte	0x7d
+ 1165 0250 48050000 		.sleb128 28
+ 1166 0254 0200     		.4byte	.LCFI10-.Ltext0
+ 1167 0256 7D       		.4byte	.LFE3-.Ltext0
+ 1168 0257 1C       		.2byte	0x2
+ 1169 0258 48050000 		.byte	0x7d
+ 1170 025c 08070000 		.sleb128 40
+ 1171 0260 0200     		.4byte	0x0
+ 1172 0262 7D       		.4byte	0x0
+ 1173 0263 28       	.LLST18:
+ 1174 0264 00000000 		.4byte	.LVL29-.Ltext0
+ 1175 0268 00000000 		.4byte	.LVL30-.Ltext0
+ 1176              		.2byte	0x1
+ 1177 026c 40050000 		.byte	0x50
+ 1178 0270 8C050000 		.4byte	.LVL39-.Ltext0
+ 1179 0274 0100     		.4byte	.LFE3-.Ltext0
+ 1180 0276 50       		.2byte	0x1
+ 1181 0277 F4060000 		.byte	0x50
+ 1182 027b 08070000 		.4byte	0x0
+ 1183 027f 0100     		.4byte	0x0
+ 1184 0281 50       	.LLST19:
+ 1185 0282 00000000 		.4byte	.LVL29-.Ltext0
+ 1186 0286 00000000 		.4byte	.LVL31-.Ltext0
+ 1187              		.2byte	0x1
+ 1188 028a 40050000 		.byte	0x51
+ 1189 028e 90050000 		.4byte	.LVL31-.Ltext0
+ 1190 0292 0100     		.4byte	.LFE3-.Ltext0
+ 1191 0294 51       		.2byte	0x1
+ 1192 0295 90050000 		.byte	0x58
+ 1193 0299 08070000 		.4byte	0x0
+ 1194 029d 0100     		.4byte	0x0
+ 1195 029f 58       	.LLST20:
+ 1196 02a0 00000000 		.4byte	.LVL34-.Ltext0
+ 1197 02a4 00000000 		.4byte	.LVL35-.Ltext0
+ 1198              		.2byte	0x2
+ 1199 02a8 30060000 		.byte	0x91
+ 1200 02ac 58060000 		.sleb128 -16
+ 1201 02b0 0200     		.4byte	.LVL39-.Ltext0
+ 1202 02b2 91       		.4byte	.LFE3-.Ltext0
+ 1203 02b3 70       		.2byte	0x2
+ 1204 02b4 F4060000 		.byte	0x91
+ 1205 02b8 08070000 		.sleb128 -16
+ 1206 02bc 0200     		.4byte	0x0
+ 1207 02be 91       		.4byte	0x0
+ 1208 02bf 70       	.LLST21:
+ 1209 02c0 00000000 		.4byte	.LVL33-.Ltext0
+ 1210 02c4 00000000 		.4byte	.LVL35-.Ltext0
+ 1211              		.2byte	0x2
+ 1212 02c8 D0050000 		.byte	0x91
+ 1213 02cc 58060000 		.sleb128 -20
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 28
+
+
+ 1214 02d0 0200     		.4byte	.LVL36-.Ltext0
+ 1215 02d2 91       		.4byte	.LFE3-.Ltext0
+ 1216 02d3 6C       		.2byte	0x2
+ 1217 02d4 78060000 		.byte	0x91
+ 1218 02d8 08070000 		.sleb128 -20
+ 1219 02dc 0200     		.4byte	0x0
+ 1220 02de 91       		.4byte	0x0
+ 1221 02df 6C       		.section	.debug_info
+ 1222 02e0 00000000 		.4byte	0x45a
+ 1223 02e4 00000000 		.2byte	0x2
+ 1224              		.4byte	.Ldebug_abbrev0
+ 1225 0000 5A040000 		.byte	0x4
+ 1226 0004 0200     		.uleb128 0x1
+ 1227 0006 00000000 		.4byte	.Ldebug_line0
+ 1228 000a 04       		.4byte	.Letext0
+ 1229 000b 01       		.4byte	.Ltext0
+ 1230 000c 00000000 		.4byte	.LASF49
+ 1231 0010 08070000 		.byte	0x1
+ 1232 0014 00000000 		.4byte	.LASF50
+ 1233 0018 3F000000 		.4byte	.LASF51
+ 1234 001c 01       		.uleb128 0x2
+ 1235 001d D1000000 		.4byte	.LASF0
+ 1236 0021 EF000000 		.byte	0x1
+ 1237 0025 02       		.byte	0x8
+ 1238 0026 25010000 		.uleb128 0x2
+ 1239 002a 01       		.4byte	.LASF1
+ 1240 002b 08       		.byte	0x1
+ 1241 002c 02       		.byte	0x6
+ 1242 002d 38010000 		.uleb128 0x2
+ 1243 0031 01       		.4byte	.LASF2
+ 1244 0032 06       		.byte	0x2
+ 1245 0033 02       		.byte	0x7
+ 1246 0034 84010000 		.uleb128 0x2
+ 1247 0038 02       		.4byte	.LASF3
+ 1248 0039 07       		.byte	0x2
+ 1249 003a 02       		.byte	0x5
+ 1250 003b 72000000 		.uleb128 0x2
+ 1251 003f 02       		.4byte	.LASF4
+ 1252 0040 05       		.byte	0x4
+ 1253 0041 02       		.byte	0x7
+ 1254 0042 D8010000 		.uleb128 0x2
+ 1255 0046 04       		.4byte	.LASF5
+ 1256 0047 07       		.byte	0x4
+ 1257 0048 02       		.byte	0x5
+ 1258 0049 B8000000 		.uleb128 0x2
+ 1259 004d 04       		.4byte	.LASF6
+ 1260 004e 05       		.byte	0x8
+ 1261 004f 02       		.byte	0x7
+ 1262 0050 4A010000 		.uleb128 0x2
+ 1263 0054 08       		.4byte	.LASF7
+ 1264 0055 07       		.byte	0x8
+ 1265 0056 02       		.byte	0x5
+ 1266 0057 AA000000 		.uleb128 0x2
+ 1267 005b 08       		.4byte	.LASF8
+ 1268 005c 05       		.byte	0x4
+ 1269 005d 02       		.byte	0x7
+ 1270 005e 61010000 		.uleb128 0x2
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 29
+
+
+ 1271 0062 04       		.4byte	.LASF9
+ 1272 0063 07       		.byte	0x1
+ 1273 0064 02       		.byte	0x8
+ 1274 0065 AF010000 		.uleb128 0x3
+ 1275 0069 01       		.ascii	"int\000"
+ 1276 006a 08       		.byte	0x4
+ 1277 006b 03       		.byte	0x5
+ 1278 006c 696E7400 		.uleb128 0x4
+ 1279 0070 04       		.4byte	.LASF10
+ 1280 0071 05       		.byte	0x2
+ 1281 0072 04       		.byte	0x2e
+ 1282 0073 8B000000 		.4byte	0x25
+ 1283 0077 02       		.uleb128 0x4
+ 1284 0078 2E       		.4byte	.LASF11
+ 1285 0079 25000000 		.byte	0x2
+ 1286 007d 04       		.byte	0x3a
+ 1287 007e 6E010000 		.4byte	0x33
+ 1288 0082 02       		.uleb128 0x4
+ 1289 0083 3A       		.4byte	.LASF12
+ 1290 0084 33000000 		.byte	0x2
+ 1291 0088 04       		.byte	0x54
+ 1292 0089 9A000000 		.4byte	0x41
+ 1293 008d 02       		.uleb128 0x5
+ 1294 008e 54       		.4byte	0xa3
+ 1295 008f 41000000 		.4byte	0x72
+ 1296 0093 05       		.uleb128 0x6
+ 1297 0094 A3000000 		.4byte	0xa3
+ 1298 0098 72000000 		.byte	0x5
+ 1299 009c 06       		.byte	0x0
+ 1300 009d A3000000 		.uleb128 0x2
+ 1301 00a1 05       		.4byte	.LASF4
+ 1302 00a2 00       		.byte	0x4
+ 1303 00a3 02       		.byte	0x7
+ 1304 00a4 D8010000 		.uleb128 0x7
+ 1305 00a8 04       		.4byte	0x17a
+ 1306 00a9 07       		.4byte	.LASF25
+ 1307 00aa 07       		.byte	0xec
+ 1308 00ab 7A010000 		.byte	0x3
+ 1309 00af 7C000000 		.byte	0x2a
+ 1310 00b3 EC       		.uleb128 0x8
+ 1311 00b4 03       		.ascii	"op\000"
+ 1312 00b5 2A       		.byte	0x3
+ 1313 00b6 08       		.byte	0x2b
+ 1314 00b7 6F7000   		.4byte	0x72
+ 1315 00ba 03       		.byte	0x2
+ 1316 00bb 2B       		.byte	0x23
+ 1317 00bc 72000000 		.uleb128 0x0
+ 1318 00c0 02       		.uleb128 0x9
+ 1319 00c1 23       		.4byte	.LASF13
+ 1320 00c2 00       		.byte	0x3
+ 1321 00c3 09       		.byte	0x2c
+ 1322 00c4 1F020000 		.4byte	0x72
+ 1323 00c8 03       		.byte	0x2
+ 1324 00c9 2C       		.byte	0x23
+ 1325 00ca 72000000 		.uleb128 0x1
+ 1326 00ce 02       		.uleb128 0x9
+ 1327 00cf 23       		.4byte	.LASF14
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 30
+
+
+ 1328 00d0 01       		.byte	0x3
+ 1329 00d1 09       		.byte	0x2d
+ 1330 00d2 02020000 		.4byte	0x72
+ 1331 00d6 03       		.byte	0x2
+ 1332 00d7 2D       		.byte	0x23
+ 1333 00d8 72000000 		.uleb128 0x2
+ 1334 00dc 02       		.uleb128 0x9
+ 1335 00dd 23       		.4byte	.LASF15
+ 1336 00de 02       		.byte	0x3
+ 1337 00df 09       		.byte	0x2e
+ 1338 00e0 25020000 		.4byte	0x72
+ 1339 00e4 03       		.byte	0x2
+ 1340 00e5 2E       		.byte	0x23
+ 1341 00e6 72000000 		.uleb128 0x3
+ 1342 00ea 02       		.uleb128 0x8
+ 1343 00eb 23       		.ascii	"xid\000"
+ 1344 00ec 03       		.byte	0x3
+ 1345 00ed 08       		.byte	0x2f
+ 1346 00ee 78696400 		.4byte	0x88
+ 1347 00f2 03       		.byte	0x2
+ 1348 00f3 2F       		.byte	0x23
+ 1349 00f4 88000000 		.uleb128 0x4
+ 1350 00f8 02       		.uleb128 0x9
+ 1351 00f9 23       		.4byte	.LASF16
+ 1352 00fa 04       		.byte	0x3
+ 1353 00fb 09       		.byte	0x30
+ 1354 00fc 07020000 		.4byte	0x7d
+ 1355 0100 03       		.byte	0x2
+ 1356 0101 30       		.byte	0x23
+ 1357 0102 7D000000 		.uleb128 0x8
+ 1358 0106 02       		.uleb128 0x9
+ 1359 0107 23       		.4byte	.LASF17
+ 1360 0108 08       		.byte	0x3
+ 1361 0109 09       		.byte	0x31
+ 1362 010a 44010000 		.4byte	0x7d
+ 1363 010e 03       		.byte	0x2
+ 1364 010f 31       		.byte	0x23
+ 1365 0110 7D000000 		.uleb128 0xa
+ 1366 0114 02       		.uleb128 0x9
+ 1367 0115 23       		.4byte	.LASF18
+ 1368 0116 0A       		.byte	0x3
+ 1369 0117 09       		.byte	0x32
+ 1370 0118 F2010000 		.4byte	0x88
+ 1371 011c 03       		.byte	0x2
+ 1372 011d 32       		.byte	0x23
+ 1373 011e 88000000 		.uleb128 0xc
+ 1374 0122 02       		.uleb128 0x9
+ 1375 0123 23       		.4byte	.LASF19
+ 1376 0124 0C       		.byte	0x3
+ 1377 0125 09       		.byte	0x33
+ 1378 0126 0C000000 		.4byte	0x88
+ 1379 012a 03       		.byte	0x2
+ 1380 012b 33       		.byte	0x23
+ 1381 012c 88000000 		.uleb128 0x10
+ 1382 0130 02       		.uleb128 0x9
+ 1383 0131 23       		.4byte	.LASF20
+ 1384 0132 10       		.byte	0x3
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 31
+
+
+ 1385 0133 09       		.byte	0x34
+ 1386 0134 B4010000 		.4byte	0x88
+ 1387 0138 03       		.byte	0x2
+ 1388 0139 34       		.byte	0x23
+ 1389 013a 88000000 		.uleb128 0x14
+ 1390 013e 02       		.uleb128 0x9
+ 1391 013f 23       		.4byte	.LASF21
+ 1392 0140 14       		.byte	0x3
+ 1393 0141 09       		.byte	0x35
+ 1394 0142 54000000 		.4byte	0x88
+ 1395 0146 03       		.byte	0x2
+ 1396 0147 35       		.byte	0x23
+ 1397 0148 88000000 		.uleb128 0x18
+ 1398 014c 02       		.uleb128 0x9
+ 1399 014d 23       		.4byte	.LASF22
+ 1400 014e 18       		.byte	0x3
+ 1401 014f 09       		.byte	0x36
+ 1402 0150 61000000 		.4byte	0x17a
+ 1403 0154 03       		.byte	0x2
+ 1404 0155 36       		.byte	0x23
+ 1405 0156 7A010000 		.uleb128 0x1c
+ 1406 015a 02       		.uleb128 0x9
+ 1407 015b 23       		.4byte	.LASF23
+ 1408 015c 1C       		.byte	0x3
+ 1409 015d 09       		.byte	0x37
+ 1410 015e 5B000000 		.4byte	0x18a
+ 1411 0162 03       		.byte	0x2
+ 1412 0163 37       		.byte	0x23
+ 1413 0164 8A010000 		.uleb128 0x2c
+ 1414 0168 02       		.uleb128 0x9
+ 1415 0169 23       		.4byte	.LASF24
+ 1416 016a 2C       		.byte	0x3
+ 1417 016b 09       		.byte	0x38
+ 1418 016c 33010000 		.4byte	0x19a
+ 1419 0170 03       		.byte	0x2
+ 1420 0171 38       		.byte	0x23
+ 1421 0172 9A010000 		.uleb128 0x6c
+ 1422 0176 02       		.byte	0x0
+ 1423 0177 23       		.uleb128 0x5
+ 1424 0178 6C       		.4byte	0x18a
+ 1425 0179 00       		.4byte	0x72
+ 1426 017a 05       		.uleb128 0x6
+ 1427 017b 8A010000 		.4byte	0xa3
+ 1428 017f 72000000 		.byte	0xf
+ 1429 0183 06       		.byte	0x0
+ 1430 0184 A3000000 		.uleb128 0x5
+ 1431 0188 0F       		.4byte	0x19a
+ 1432 0189 00       		.4byte	0x72
+ 1433 018a 05       		.uleb128 0x6
+ 1434 018b 9A010000 		.4byte	0xa3
+ 1435 018f 72000000 		.byte	0x3f
+ 1436 0193 06       		.byte	0x0
+ 1437 0194 A3000000 		.uleb128 0x5
+ 1438 0198 3F       		.4byte	0x1aa
+ 1439 0199 00       		.4byte	0x72
+ 1440 019a 05       		.uleb128 0x6
+ 1441 019b AA010000 		.4byte	0xa3
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 32
+
+
+ 1442 019f 72000000 		.byte	0x7f
+ 1443 01a3 06       		.byte	0x0
+ 1444 01a4 A3000000 		.uleb128 0x7
+ 1445 01a8 7F       		.4byte	0x1e3
+ 1446 01a9 00       		.4byte	.LASF26
+ 1447 01aa 07       		.byte	0xf0
+ 1448 01ab E3010000 		.byte	0x3
+ 1449 01af 38020000 		.byte	0x45
+ 1450 01b3 F0       		.uleb128 0x9
+ 1451 01b4 03       		.4byte	.LASF27
+ 1452 01b5 45       		.byte	0x3
+ 1453 01b6 09       		.byte	0x46
+ 1454 01b7 D2010000 		.4byte	0xaa
+ 1455 01bb 03       		.byte	0x2
+ 1456 01bc 46       		.byte	0x23
+ 1457 01bd AA000000 		.uleb128 0x0
+ 1458 01c1 02       		.uleb128 0x9
+ 1459 01c2 23       		.4byte	.LASF28
+ 1460 01c3 00       		.byte	0x3
+ 1461 01c4 09       		.byte	0x47
+ 1462 01c5 38000000 		.4byte	0x88
+ 1463 01c9 03       		.byte	0x3
+ 1464 01ca 47       		.byte	0x23
+ 1465 01cb 88000000 		.uleb128 0xec
+ 1466 01cf 03       		.uleb128 0x9
+ 1467 01d0 23       		.4byte	.LASF29
+ 1468 01d1 EC01     		.byte	0x3
+ 1469 01d3 09       		.byte	0x48
+ 1470 01d4 21000000 		.4byte	0x1e3
+ 1471 01d8 03       		.byte	0x3
+ 1472 01d9 48       		.byte	0x23
+ 1473 01da E3010000 		.uleb128 0xf0
+ 1474 01de 03       		.byte	0x0
+ 1475 01df 23       		.uleb128 0x5
+ 1476 01e0 F001     		.4byte	0x1f2
+ 1477 01e2 00       		.4byte	0x72
+ 1478 01e3 05       		.uleb128 0xa
+ 1479 01e4 F2010000 		.4byte	0xa3
+ 1480 01e8 72000000 		.byte	0x0
+ 1481 01ec 0A       		.uleb128 0xb
+ 1482 01ed A3000000 		.byte	0x1
+ 1483 01f1 00       		.4byte	.LASF52
+ 1484 01f2 0B       		.byte	0x1
+ 1485 01f3 01       		.byte	0xcc
+ 1486 01f4 A5010000 		.byte	0x1
+ 1487 01f8 01       		.4byte	.LFB6
+ 1488 01f9 CC       		.4byte	.LFE6
+ 1489 01fa 01       		.byte	0x1
+ 1490 01fb 00000000 		.byte	0x5d
+ 1491 01ff 1C000000 		.uleb128 0xc
+ 1492 0203 01       		.4byte	0x26c
+ 1493 0204 5D       		.byte	0x1
+ 1494 0205 0C       		.4byte	.LASF33
+ 1495 0206 6C020000 		.byte	0x1
+ 1496 020a 01       		.byte	0xd5
+ 1497 020b 2A020000 		.byte	0x1
+ 1498 020f 01       		.4byte	0x72
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 33
+
+
+ 1499 0210 D5       		.4byte	.LFB7
+ 1500 0211 01       		.4byte	.LFE7
+ 1501 0212 72000000 		.4byte	.LLST1
+ 1502 0216 1C000000 		.uleb128 0xd
+ 1503 021a A4000000 		.4byte	.LASF29
+ 1504 021e 00000000 		.byte	0x1
+ 1505 0222 0D       		.byte	0xd4
+ 1506 0223 21000000 		.4byte	0x26c
+ 1507 0227 01       		.4byte	.LLST2
+ 1508 0228 D4       		.uleb128 0xd
+ 1509 0229 6C020000 		.4byte	.LASF30
+ 1510 022d 1F000000 		.byte	0x1
+ 1511 0231 0D       		.byte	0xd4
+ 1512 0232 46020000 		.4byte	0x72
+ 1513 0236 01       		.4byte	.LLST3
+ 1514 0237 D4       		.uleb128 0xd
+ 1515 0238 72000000 		.4byte	.LASF31
+ 1516 023c 53000000 		.byte	0x1
+ 1517 0240 0D       		.byte	0xd4
+ 1518 0241 A3000000 		.4byte	0x72
+ 1519 0245 01       		.4byte	.LLST4
+ 1520 0246 D4       		.uleb128 0xd
+ 1521 0247 72000000 		.4byte	.LASF32
+ 1522 024b 71000000 		.byte	0x1
+ 1523 024f 0D       		.byte	0xd4
+ 1524 0250 68000000 		.4byte	0x272
+ 1525 0254 01       		.4byte	.LLST5
+ 1526 0255 D4       		.uleb128 0xe
+ 1527 0256 72020000 		.ascii	"i\000"
+ 1528 025a 9A000000 		.byte	0x1
+ 1529 025e 0E       		.byte	0xd6
+ 1530 025f 6900     		.4byte	0x72
+ 1531 0261 01       		.4byte	.LLST6
+ 1532 0262 D6       		.byte	0x0
+ 1533 0263 72000000 		.uleb128 0xf
+ 1534 0267 B8000000 		.byte	0x4
+ 1535 026b 00       		.4byte	0x72
+ 1536 026c 0F       		.uleb128 0x10
+ 1537 026d 04       		.byte	0x4
+ 1538 026e 72000000 		.uleb128 0xc
+ 1539 0272 10       		.4byte	0x2ce
+ 1540 0273 04       		.byte	0x1
+ 1541 0274 0C       		.4byte	.LASF34
+ 1542 0275 CE020000 		.byte	0x1
+ 1543 0279 01       		.byte	0xfe
+ 1544 027a 97010000 		.byte	0x1
+ 1545 027e 01       		.4byte	0x26c
+ 1546 027f FE       		.4byte	.LFB8
+ 1547 0280 01       		.4byte	.LFE8
+ 1548 0281 6C020000 		.4byte	.LLST7
+ 1549 0285 A4000000 		.uleb128 0xd
+ 1550 0289 08010000 		.4byte	.LASF29
+ 1551 028d CB000000 		.byte	0x1
+ 1552 0291 0D       		.byte	0xfd
+ 1553 0292 21000000 		.4byte	0x26c
+ 1554 0296 01       		.4byte	.LLST8
+ 1555 0297 FD       		.uleb128 0xd
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 34
+
+
+ 1556 0298 6C020000 		.4byte	.LASF30
+ 1557 029c EA000000 		.byte	0x1
+ 1558 02a0 0D       		.byte	0xfd
+ 1559 02a1 46020000 		.4byte	0x72
+ 1560 02a5 01       		.4byte	.LLST9
+ 1561 02a6 FD       		.uleb128 0xd
+ 1562 02a7 72000000 		.4byte	.LASF31
+ 1563 02ab 29010000 		.byte	0x1
+ 1564 02af 0D       		.byte	0xfd
+ 1565 02b0 A3000000 		.4byte	0x72
+ 1566 02b4 01       		.4byte	.LLST10
+ 1567 02b5 FD       		.uleb128 0xd
+ 1568 02b6 72000000 		.4byte	.LASF32
+ 1569 02ba 47010000 		.byte	0x1
+ 1570 02be 0D       		.byte	0xfd
+ 1571 02bf 68000000 		.4byte	0x272
+ 1572 02c3 01       		.4byte	.LLST11
+ 1573 02c4 FD       		.byte	0x0
+ 1574 02c5 72020000 		.uleb128 0x11
+ 1575 02c9 65010000 		.4byte	0x2f9
+ 1576 02cd 00       		.byte	0x1
+ 1577 02ce 11       		.4byte	.LASF35
+ 1578 02cf F9020000 		.byte	0x1
+ 1579 02d3 01       		.2byte	0x114
+ 1580 02d4 C1000000 		.byte	0x1
+ 1581 02d8 01       		.4byte	.LFB9
+ 1582 02d9 1401     		.4byte	.LFE9
+ 1583 02db 01       		.4byte	.LLST12
+ 1584 02dc 08010000 		.uleb128 0x12
+ 1585 02e0 8C020000 		.4byte	.LASF36
+ 1586 02e4 83010000 		.byte	0x1
+ 1587 02e8 12       		.2byte	0x113
+ 1588 02e9 93000000 		.4byte	0x2f9
+ 1589 02ed 01       		.4byte	.LLST13
+ 1590 02ee 1301     		.byte	0x0
+ 1591 02f0 F9020000 		.uleb128 0xf
+ 1592 02f4 A2010000 		.byte	0x4
+ 1593 02f8 00       		.4byte	0x1aa
+ 1594 02f9 0F       		.uleb128 0x13
+ 1595 02fa 04       		.4byte	0x327
+ 1596 02fb AA010000 		.byte	0x1
+ 1597 02ff 13       		.4byte	.LASF37
+ 1598 0300 27030000 		.byte	0x1
+ 1599 0304 01       		.byte	0x1f
+ 1600 0305 F9010000 		.byte	0x1
+ 1601 0309 01       		.4byte	.LFB2
+ 1602 030a 1F       		.4byte	.LFE2
+ 1603 030b 01       		.4byte	.LLST14
+ 1604 030c 8C020000 		.uleb128 0x14
+ 1605 0310 C4020000 		.4byte	.LASF38
+ 1606 0314 C0010000 		.byte	0x1
+ 1607 0318 14       		.byte	0x20
+ 1608 0319 EA010000 		.4byte	0x93
+ 1609 031d 01       		.byte	0x2
+ 1610 031e 20       		.byte	0x91
+ 1611 031f 93000000 		.sleb128 -10
+ 1612 0323 02       		.byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 35
+
+
+ 1613 0324 91       		.uleb128 0x13
+ 1614 0325 76       		.4byte	0x35c
+ 1615 0326 00       		.byte	0x1
+ 1616 0327 13       		.4byte	.LASF39
+ 1617 0328 5C030000 		.byte	0x1
+ 1618 032c 01       		.byte	0x7c
+ 1619 032d 00000000 		.byte	0x1
+ 1620 0331 01       		.4byte	.LFB4
+ 1621 0332 7C       		.4byte	.LFE4
+ 1622 0333 01       		.4byte	.LLST15
+ 1623 0334 C4020000 		.uleb128 0x14
+ 1624 0338 D4030000 		.4byte	.LASF36
+ 1625 033c EB010000 		.byte	0x1
+ 1626 0340 14       		.byte	0x7d
+ 1627 0341 93000000 		.4byte	0x2f9
+ 1628 0345 01       		.byte	0x1
+ 1629 0346 7D       		.byte	0x55
+ 1630 0347 F9020000 		.uleb128 0x15
+ 1631 034b 01       		.ascii	"val\000"
+ 1632 034c 55       		.byte	0x1
+ 1633 034d 15       		.byte	0x7e
+ 1634 034e 76616C00 		.4byte	0x88
+ 1635 0352 01       		.byte	0x2
+ 1636 0353 7E       		.byte	0x73
+ 1637 0354 88000000 		.sleb128 -4
+ 1638 0358 02       		.byte	0x0
+ 1639 0359 73       		.uleb128 0x13
+ 1640 035a 7C       		.4byte	0x39e
+ 1641 035b 00       		.byte	0x1
+ 1642 035c 13       		.4byte	.LASF40
+ 1643 035d 9E030000 		.byte	0x1
+ 1644 0361 01       		.byte	0x9f
+ 1645 0362 0C020000 		.byte	0x1
+ 1646 0366 01       		.4byte	.LFB5
+ 1647 0367 9F       		.4byte	.LFE5
+ 1648 0368 01       		.4byte	.LLST16
+ 1649 0369 D4030000 		.uleb128 0x14
+ 1650 036d 40050000 		.4byte	.LASF36
+ 1651 0371 16020000 		.byte	0x1
+ 1652 0375 14       		.byte	0xa0
+ 1653 0376 93000000 		.4byte	0x2f9
+ 1654 037a 01       		.byte	0x1
+ 1655 037b A0       		.byte	0x54
+ 1656 037c F9020000 		.uleb128 0x15
+ 1657 0380 01       		.ascii	"val\000"
+ 1658 0381 54       		.byte	0x1
+ 1659 0382 15       		.byte	0xa1
+ 1660 0383 76616C00 		.4byte	0x88
+ 1661 0387 01       		.byte	0x2
+ 1662 0388 A1       		.byte	0x76
+ 1663 0389 88000000 		.sleb128 -4
+ 1664 038d 02       		.uleb128 0x14
+ 1665 038e 76       		.4byte	.LASF41
+ 1666 038f 7C       		.byte	0x1
+ 1667 0390 14       		.byte	0xa2
+ 1668 0391 18020000 		.4byte	0x26c
+ 1669 0395 01       		.byte	0x1
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 36
+
+
+ 1670 0396 A2       		.byte	0x57
+ 1671 0397 6C020000 		.byte	0x0
+ 1672 039b 01       		.uleb128 0x13
+ 1673 039c 57       		.4byte	0x427
+ 1674 039d 00       		.byte	0x1
+ 1675 039e 13       		.4byte	.LASF42
+ 1676 039f 27040000 		.byte	0x1
+ 1677 03a3 01       		.byte	0x2b
+ 1678 03a4 CB010000 		.byte	0x1
+ 1679 03a8 01       		.4byte	.LFB3
+ 1680 03a9 2B       		.4byte	.LFE3
+ 1681 03aa 01       		.4byte	.LLST17
+ 1682 03ab 40050000 		.uleb128 0x16
+ 1683 03af 08070000 		.ascii	"len\000"
+ 1684 03b3 41020000 		.byte	0x1
+ 1685 03b7 16       		.byte	0x2a
+ 1686 03b8 6C656E00 		.4byte	0x5d
+ 1687 03bc 01       		.4byte	.LLST18
+ 1688 03bd 2A       		.uleb128 0xd
+ 1689 03be 5D000000 		.4byte	.LASF36
+ 1690 03c2 6C020000 		.byte	0x1
+ 1691 03c6 0D       		.byte	0x2a
+ 1692 03c7 93000000 		.4byte	0x2f9
+ 1693 03cb 01       		.4byte	.LLST19
+ 1694 03cc 2A       		.uleb128 0x14
+ 1695 03cd F9020000 		.4byte	.LASF43
+ 1696 03d1 8A020000 		.byte	0x1
+ 1697 03d5 14       		.byte	0x2c
+ 1698 03d6 C3010000 		.4byte	0x72
+ 1699 03da 01       		.byte	0x2
+ 1700 03db 2C       		.byte	0x91
+ 1701 03dc 72000000 		.sleb128 -9
+ 1702 03e0 02       		.uleb128 0xe
+ 1703 03e1 91       		.ascii	"sid\000"
+ 1704 03e2 77       		.byte	0x1
+ 1705 03e3 0E       		.byte	0x2d
+ 1706 03e4 73696400 		.4byte	0x88
+ 1707 03e8 01       		.4byte	.LLST20
+ 1708 03e9 2D       		.uleb128 0x17
+ 1709 03ea 88000000 		.4byte	.LASF41
+ 1710 03ee A8020000 		.byte	0x1
+ 1711 03f2 17       		.byte	0x2e
+ 1712 03f3 18020000 		.4byte	0x26c
+ 1713 03f7 01       		.uleb128 0xe
+ 1714 03f8 2E       		.ascii	"val\000"
+ 1715 03f9 6C020000 		.byte	0x1
+ 1716 03fd 0E       		.byte	0x2f
+ 1717 03fe 76616C00 		.4byte	0x88
+ 1718 0402 01       		.4byte	.LLST21
+ 1719 0403 2F       		.uleb128 0x14
+ 1720 0404 88000000 		.4byte	.LASF44
+ 1721 0408 C8020000 		.byte	0x1
+ 1722 040c 14       		.byte	0x30
+ 1723 040d 1D010000 		.4byte	0x88
+ 1724 0411 01       		.byte	0x1
+ 1725 0412 30       		.byte	0x56
+ 1726 0413 88000000 		.uleb128 0x14
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 37
+
+
+ 1727 0417 01       		.4byte	.LASF45
+ 1728 0418 56       		.byte	0x1
+ 1729 0419 14       		.byte	0x31
+ 1730 041a BB010000 		.4byte	0x88
+ 1731 041e 01       		.byte	0x1
+ 1732 041f 31       		.byte	0x55
+ 1733 0420 88000000 		.byte	0x0
+ 1734 0424 01       		.uleb128 0x18
+ 1735 0425 55       		.4byte	.LASF46
+ 1736 0426 00       		.byte	0x1
+ 1737 0427 18       		.byte	0x1a
+ 1738 0428 77010000 		.4byte	0x88
+ 1739 042c 01       		.byte	0x1
+ 1740 042d 1A       		.byte	0x5
+ 1741 042e 88000000 		.byte	0x3
+ 1742 0432 01       		.4byte	DhcpServerIP
+ 1743 0433 05       		.uleb128 0x18
+ 1744 0434 03       		.4byte	.LASF47
+ 1745 0435 00000000 		.byte	0x1
+ 1746 0439 18       		.byte	0x1b
+ 1747 043a 29000000 		.4byte	0x88
+ 1748 043e 01       		.byte	0x1
+ 1749 043f 1B       		.byte	0x5
+ 1750 0440 88000000 		.byte	0x3
+ 1751 0444 01       		.4byte	DhcpTransactID
+ 1752 0445 05       		.uleb128 0x18
+ 1753 0446 03       		.4byte	.LASF48
+ 1754 0447 00000000 		.byte	0x1
+ 1755 044b 18       		.byte	0x1c
+ 1756 044c 13000000 		.4byte	0x88
+ 1757 0450 01       		.byte	0x1
+ 1758 0451 1C       		.byte	0x5
+ 1759 0452 88000000 		.byte	0x3
+ 1760 0456 01       		.4byte	DhcpLeaseTime
+ 1761 0457 05       		.byte	0x0
+ 1762 0458 03       		.section	.debug_abbrev
+ 1763 0459 00000000 		.uleb128 0x1
+ 1764 045d 00       		.uleb128 0x11
+ 1765              		.byte	0x1
+ 1766 0000 01       		.uleb128 0x10
+ 1767 0001 11       		.uleb128 0x6
+ 1768 0002 01       		.uleb128 0x12
+ 1769 0003 10       		.uleb128 0x1
+ 1770 0004 06       		.uleb128 0x11
+ 1771 0005 12       		.uleb128 0x1
+ 1772 0006 01       		.uleb128 0x25
+ 1773 0007 11       		.uleb128 0xe
+ 1774 0008 01       		.uleb128 0x13
+ 1775 0009 25       		.uleb128 0xb
+ 1776 000a 0E       		.uleb128 0x3
+ 1777 000b 13       		.uleb128 0xe
+ 1778 000c 0B       		.uleb128 0x1b
+ 1779 000d 03       		.uleb128 0xe
+ 1780 000e 0E       		.byte	0x0
+ 1781 000f 1B       		.byte	0x0
+ 1782 0010 0E       		.uleb128 0x2
+ 1783 0011 00       		.uleb128 0x24
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 38
+
+
+ 1784 0012 00       		.byte	0x0
+ 1785 0013 02       		.uleb128 0x3
+ 1786 0014 24       		.uleb128 0xe
+ 1787 0015 00       		.uleb128 0xb
+ 1788 0016 03       		.uleb128 0xb
+ 1789 0017 0E       		.uleb128 0x3e
+ 1790 0018 0B       		.uleb128 0xb
+ 1791 0019 0B       		.byte	0x0
+ 1792 001a 3E       		.byte	0x0
+ 1793 001b 0B       		.uleb128 0x3
+ 1794 001c 00       		.uleb128 0x24
+ 1795 001d 00       		.byte	0x0
+ 1796 001e 03       		.uleb128 0x3
+ 1797 001f 24       		.uleb128 0x8
+ 1798 0020 00       		.uleb128 0xb
+ 1799 0021 03       		.uleb128 0xb
+ 1800 0022 08       		.uleb128 0x3e
+ 1801 0023 0B       		.uleb128 0xb
+ 1802 0024 0B       		.byte	0x0
+ 1803 0025 3E       		.byte	0x0
+ 1804 0026 0B       		.uleb128 0x4
+ 1805 0027 00       		.uleb128 0x16
+ 1806 0028 00       		.byte	0x0
+ 1807 0029 04       		.uleb128 0x3
+ 1808 002a 16       		.uleb128 0xe
+ 1809 002b 00       		.uleb128 0x3a
+ 1810 002c 03       		.uleb128 0xb
+ 1811 002d 0E       		.uleb128 0x3b
+ 1812 002e 3A       		.uleb128 0xb
+ 1813 002f 0B       		.uleb128 0x49
+ 1814 0030 3B       		.uleb128 0x13
+ 1815 0031 0B       		.byte	0x0
+ 1816 0032 49       		.byte	0x0
+ 1817 0033 13       		.uleb128 0x5
+ 1818 0034 00       		.uleb128 0x1
+ 1819 0035 00       		.byte	0x1
+ 1820 0036 05       		.uleb128 0x1
+ 1821 0037 01       		.uleb128 0x13
+ 1822 0038 01       		.uleb128 0x49
+ 1823 0039 01       		.uleb128 0x13
+ 1824 003a 13       		.byte	0x0
+ 1825 003b 49       		.byte	0x0
+ 1826 003c 13       		.uleb128 0x6
+ 1827 003d 00       		.uleb128 0x21
+ 1828 003e 00       		.byte	0x0
+ 1829 003f 06       		.uleb128 0x49
+ 1830 0040 21       		.uleb128 0x13
+ 1831 0041 00       		.uleb128 0x2f
+ 1832 0042 49       		.uleb128 0xb
+ 1833 0043 13       		.byte	0x0
+ 1834 0044 2F       		.byte	0x0
+ 1835 0045 0B       		.uleb128 0x7
+ 1836 0046 00       		.uleb128 0x13
+ 1837 0047 00       		.byte	0x1
+ 1838 0048 07       		.uleb128 0x1
+ 1839 0049 13       		.uleb128 0x13
+ 1840 004a 01       		.uleb128 0x3
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 39
+
+
+ 1841 004b 01       		.uleb128 0xe
+ 1842 004c 13       		.uleb128 0xb
+ 1843 004d 03       		.uleb128 0xb
+ 1844 004e 0E       		.uleb128 0x3a
+ 1845 004f 0B       		.uleb128 0xb
+ 1846 0050 0B       		.uleb128 0x3b
+ 1847 0051 3A       		.uleb128 0xb
+ 1848 0052 0B       		.byte	0x0
+ 1849 0053 3B       		.byte	0x0
+ 1850 0054 0B       		.uleb128 0x8
+ 1851 0055 00       		.uleb128 0xd
+ 1852 0056 00       		.byte	0x0
+ 1853 0057 08       		.uleb128 0x3
+ 1854 0058 0D       		.uleb128 0x8
+ 1855 0059 00       		.uleb128 0x3a
+ 1856 005a 03       		.uleb128 0xb
+ 1857 005b 08       		.uleb128 0x3b
+ 1858 005c 3A       		.uleb128 0xb
+ 1859 005d 0B       		.uleb128 0x49
+ 1860 005e 3B       		.uleb128 0x13
+ 1861 005f 0B       		.uleb128 0x38
+ 1862 0060 49       		.uleb128 0xa
+ 1863 0061 13       		.byte	0x0
+ 1864 0062 38       		.byte	0x0
+ 1865 0063 0A       		.uleb128 0x9
+ 1866 0064 00       		.uleb128 0xd
+ 1867 0065 00       		.byte	0x0
+ 1868 0066 09       		.uleb128 0x3
+ 1869 0067 0D       		.uleb128 0xe
+ 1870 0068 00       		.uleb128 0x3a
+ 1871 0069 03       		.uleb128 0xb
+ 1872 006a 0E       		.uleb128 0x3b
+ 1873 006b 3A       		.uleb128 0xb
+ 1874 006c 0B       		.uleb128 0x49
+ 1875 006d 3B       		.uleb128 0x13
+ 1876 006e 0B       		.uleb128 0x38
+ 1877 006f 49       		.uleb128 0xa
+ 1878 0070 13       		.byte	0x0
+ 1879 0071 38       		.byte	0x0
+ 1880 0072 0A       		.uleb128 0xa
+ 1881 0073 00       		.uleb128 0x21
+ 1882 0074 00       		.byte	0x0
+ 1883 0075 0A       		.uleb128 0x49
+ 1884 0076 21       		.uleb128 0x13
+ 1885 0077 00       		.byte	0x0
+ 1886 0078 49       		.byte	0x0
+ 1887 0079 13       		.uleb128 0xb
+ 1888 007a 00       		.uleb128 0x2e
+ 1889 007b 00       		.byte	0x0
+ 1890 007c 0B       		.uleb128 0x3f
+ 1891 007d 2E       		.uleb128 0xc
+ 1892 007e 00       		.uleb128 0x3
+ 1893 007f 3F       		.uleb128 0xe
+ 1894 0080 0C       		.uleb128 0x3a
+ 1895 0081 03       		.uleb128 0xb
+ 1896 0082 0E       		.uleb128 0x3b
+ 1897 0083 3A       		.uleb128 0xb
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 40
+
+
+ 1898 0084 0B       		.uleb128 0x27
+ 1899 0085 3B       		.uleb128 0xc
+ 1900 0086 0B       		.uleb128 0x11
+ 1901 0087 27       		.uleb128 0x1
+ 1902 0088 0C       		.uleb128 0x12
+ 1903 0089 11       		.uleb128 0x1
+ 1904 008a 01       		.uleb128 0x40
+ 1905 008b 12       		.uleb128 0xa
+ 1906 008c 01       		.byte	0x0
+ 1907 008d 40       		.byte	0x0
+ 1908 008e 0A       		.uleb128 0xc
+ 1909 008f 00       		.uleb128 0x2e
+ 1910 0090 00       		.byte	0x1
+ 1911 0091 0C       		.uleb128 0x1
+ 1912 0092 2E       		.uleb128 0x13
+ 1913 0093 01       		.uleb128 0x3f
+ 1914 0094 01       		.uleb128 0xc
+ 1915 0095 13       		.uleb128 0x3
+ 1916 0096 3F       		.uleb128 0xe
+ 1917 0097 0C       		.uleb128 0x3a
+ 1918 0098 03       		.uleb128 0xb
+ 1919 0099 0E       		.uleb128 0x3b
+ 1920 009a 3A       		.uleb128 0xb
+ 1921 009b 0B       		.uleb128 0x27
+ 1922 009c 3B       		.uleb128 0xc
+ 1923 009d 0B       		.uleb128 0x49
+ 1924 009e 27       		.uleb128 0x13
+ 1925 009f 0C       		.uleb128 0x11
+ 1926 00a0 49       		.uleb128 0x1
+ 1927 00a1 13       		.uleb128 0x12
+ 1928 00a2 11       		.uleb128 0x1
+ 1929 00a3 01       		.uleb128 0x40
+ 1930 00a4 12       		.uleb128 0x6
+ 1931 00a5 01       		.byte	0x0
+ 1932 00a6 40       		.byte	0x0
+ 1933 00a7 06       		.uleb128 0xd
+ 1934 00a8 00       		.uleb128 0x5
+ 1935 00a9 00       		.byte	0x0
+ 1936 00aa 0D       		.uleb128 0x3
+ 1937 00ab 05       		.uleb128 0xe
+ 1938 00ac 00       		.uleb128 0x3a
+ 1939 00ad 03       		.uleb128 0xb
+ 1940 00ae 0E       		.uleb128 0x3b
+ 1941 00af 3A       		.uleb128 0xb
+ 1942 00b0 0B       		.uleb128 0x49
+ 1943 00b1 3B       		.uleb128 0x13
+ 1944 00b2 0B       		.uleb128 0x2
+ 1945 00b3 49       		.uleb128 0x6
+ 1946 00b4 13       		.byte	0x0
+ 1947 00b5 02       		.byte	0x0
+ 1948 00b6 06       		.uleb128 0xe
+ 1949 00b7 00       		.uleb128 0x34
+ 1950 00b8 00       		.byte	0x0
+ 1951 00b9 0E       		.uleb128 0x3
+ 1952 00ba 34       		.uleb128 0x8
+ 1953 00bb 00       		.uleb128 0x3a
+ 1954 00bc 03       		.uleb128 0xb
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 41
+
+
+ 1955 00bd 08       		.uleb128 0x3b
+ 1956 00be 3A       		.uleb128 0xb
+ 1957 00bf 0B       		.uleb128 0x49
+ 1958 00c0 3B       		.uleb128 0x13
+ 1959 00c1 0B       		.uleb128 0x2
+ 1960 00c2 49       		.uleb128 0x6
+ 1961 00c3 13       		.byte	0x0
+ 1962 00c4 02       		.byte	0x0
+ 1963 00c5 06       		.uleb128 0xf
+ 1964 00c6 00       		.uleb128 0xf
+ 1965 00c7 00       		.byte	0x0
+ 1966 00c8 0F       		.uleb128 0xb
+ 1967 00c9 0F       		.uleb128 0xb
+ 1968 00ca 00       		.uleb128 0x49
+ 1969 00cb 0B       		.uleb128 0x13
+ 1970 00cc 0B       		.byte	0x0
+ 1971 00cd 49       		.byte	0x0
+ 1972 00ce 13       		.uleb128 0x10
+ 1973 00cf 00       		.uleb128 0xf
+ 1974 00d0 00       		.byte	0x0
+ 1975 00d1 10       		.uleb128 0xb
+ 1976 00d2 0F       		.uleb128 0xb
+ 1977 00d3 00       		.byte	0x0
+ 1978 00d4 0B       		.byte	0x0
+ 1979 00d5 0B       		.uleb128 0x11
+ 1980 00d6 00       		.uleb128 0x2e
+ 1981 00d7 00       		.byte	0x1
+ 1982 00d8 11       		.uleb128 0x1
+ 1983 00d9 2E       		.uleb128 0x13
+ 1984 00da 01       		.uleb128 0x3f
+ 1985 00db 01       		.uleb128 0xc
+ 1986 00dc 13       		.uleb128 0x3
+ 1987 00dd 3F       		.uleb128 0xe
+ 1988 00de 0C       		.uleb128 0x3a
+ 1989 00df 03       		.uleb128 0xb
+ 1990 00e0 0E       		.uleb128 0x3b
+ 1991 00e1 3A       		.uleb128 0x5
+ 1992 00e2 0B       		.uleb128 0x27
+ 1993 00e3 3B       		.uleb128 0xc
+ 1994 00e4 05       		.uleb128 0x11
+ 1995 00e5 27       		.uleb128 0x1
+ 1996 00e6 0C       		.uleb128 0x12
+ 1997 00e7 11       		.uleb128 0x1
+ 1998 00e8 01       		.uleb128 0x40
+ 1999 00e9 12       		.uleb128 0x6
+ 2000 00ea 01       		.byte	0x0
+ 2001 00eb 40       		.byte	0x0
+ 2002 00ec 06       		.uleb128 0x12
+ 2003 00ed 00       		.uleb128 0x5
+ 2004 00ee 00       		.byte	0x0
+ 2005 00ef 12       		.uleb128 0x3
+ 2006 00f0 05       		.uleb128 0xe
+ 2007 00f1 00       		.uleb128 0x3a
+ 2008 00f2 03       		.uleb128 0xb
+ 2009 00f3 0E       		.uleb128 0x3b
+ 2010 00f4 3A       		.uleb128 0x5
+ 2011 00f5 0B       		.uleb128 0x49
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 42
+
+
+ 2012 00f6 3B       		.uleb128 0x13
+ 2013 00f7 05       		.uleb128 0x2
+ 2014 00f8 49       		.uleb128 0x6
+ 2015 00f9 13       		.byte	0x0
+ 2016 00fa 02       		.byte	0x0
+ 2017 00fb 06       		.uleb128 0x13
+ 2018 00fc 00       		.uleb128 0x2e
+ 2019 00fd 00       		.byte	0x1
+ 2020 00fe 13       		.uleb128 0x1
+ 2021 00ff 2E       		.uleb128 0x13
+ 2022 0100 01       		.uleb128 0x3f
+ 2023 0101 01       		.uleb128 0xc
+ 2024 0102 13       		.uleb128 0x3
+ 2025 0103 3F       		.uleb128 0xe
+ 2026 0104 0C       		.uleb128 0x3a
+ 2027 0105 03       		.uleb128 0xb
+ 2028 0106 0E       		.uleb128 0x3b
+ 2029 0107 3A       		.uleb128 0xb
+ 2030 0108 0B       		.uleb128 0x27
+ 2031 0109 3B       		.uleb128 0xc
+ 2032 010a 0B       		.uleb128 0x11
+ 2033 010b 27       		.uleb128 0x1
+ 2034 010c 0C       		.uleb128 0x12
+ 2035 010d 11       		.uleb128 0x1
+ 2036 010e 01       		.uleb128 0x40
+ 2037 010f 12       		.uleb128 0x6
+ 2038 0110 01       		.byte	0x0
+ 2039 0111 40       		.byte	0x0
+ 2040 0112 06       		.uleb128 0x14
+ 2041 0113 00       		.uleb128 0x34
+ 2042 0114 00       		.byte	0x0
+ 2043 0115 14       		.uleb128 0x3
+ 2044 0116 34       		.uleb128 0xe
+ 2045 0117 00       		.uleb128 0x3a
+ 2046 0118 03       		.uleb128 0xb
+ 2047 0119 0E       		.uleb128 0x3b
+ 2048 011a 3A       		.uleb128 0xb
+ 2049 011b 0B       		.uleb128 0x49
+ 2050 011c 3B       		.uleb128 0x13
+ 2051 011d 0B       		.uleb128 0x2
+ 2052 011e 49       		.uleb128 0xa
+ 2053 011f 13       		.byte	0x0
+ 2054 0120 02       		.byte	0x0
+ 2055 0121 0A       		.uleb128 0x15
+ 2056 0122 00       		.uleb128 0x34
+ 2057 0123 00       		.byte	0x0
+ 2058 0124 15       		.uleb128 0x3
+ 2059 0125 34       		.uleb128 0x8
+ 2060 0126 00       		.uleb128 0x3a
+ 2061 0127 03       		.uleb128 0xb
+ 2062 0128 08       		.uleb128 0x3b
+ 2063 0129 3A       		.uleb128 0xb
+ 2064 012a 0B       		.uleb128 0x49
+ 2065 012b 3B       		.uleb128 0x13
+ 2066 012c 0B       		.uleb128 0x2
+ 2067 012d 49       		.uleb128 0xa
+ 2068 012e 13       		.byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 43
+
+
+ 2069 012f 02       		.byte	0x0
+ 2070 0130 0A       		.uleb128 0x16
+ 2071 0131 00       		.uleb128 0x5
+ 2072 0132 00       		.byte	0x0
+ 2073 0133 16       		.uleb128 0x3
+ 2074 0134 05       		.uleb128 0x8
+ 2075 0135 00       		.uleb128 0x3a
+ 2076 0136 03       		.uleb128 0xb
+ 2077 0137 08       		.uleb128 0x3b
+ 2078 0138 3A       		.uleb128 0xb
+ 2079 0139 0B       		.uleb128 0x49
+ 2080 013a 3B       		.uleb128 0x13
+ 2081 013b 0B       		.uleb128 0x2
+ 2082 013c 49       		.uleb128 0x6
+ 2083 013d 13       		.byte	0x0
+ 2084 013e 02       		.byte	0x0
+ 2085 013f 06       		.uleb128 0x17
+ 2086 0140 00       		.uleb128 0x34
+ 2087 0141 00       		.byte	0x0
+ 2088 0142 17       		.uleb128 0x3
+ 2089 0143 34       		.uleb128 0xe
+ 2090 0144 00       		.uleb128 0x3a
+ 2091 0145 03       		.uleb128 0xb
+ 2092 0146 0E       		.uleb128 0x3b
+ 2093 0147 3A       		.uleb128 0xb
+ 2094 0148 0B       		.uleb128 0x49
+ 2095 0149 3B       		.uleb128 0x13
+ 2096 014a 0B       		.byte	0x0
+ 2097 014b 49       		.byte	0x0
+ 2098 014c 13       		.uleb128 0x18
+ 2099 014d 00       		.uleb128 0x34
+ 2100 014e 00       		.byte	0x0
+ 2101 014f 18       		.uleb128 0x3
+ 2102 0150 34       		.uleb128 0xe
+ 2103 0151 00       		.uleb128 0x3a
+ 2104 0152 03       		.uleb128 0xb
+ 2105 0153 0E       		.uleb128 0x3b
+ 2106 0154 3A       		.uleb128 0xb
+ 2107 0155 0B       		.uleb128 0x49
+ 2108 0156 3B       		.uleb128 0x13
+ 2109 0157 0B       		.uleb128 0x3f
+ 2110 0158 49       		.uleb128 0xc
+ 2111 0159 13       		.uleb128 0x2
+ 2112 015a 3F       		.uleb128 0xa
+ 2113 015b 0C       		.byte	0x0
+ 2114 015c 02       		.byte	0x0
+ 2115 015d 0A       		.byte	0x0
+ 2116 015e 00       		.section	.debug_pubnames,"",%progbits
+ 2117 015f 00       		.4byte	0xc2
+ 2118 0160 00       		.2byte	0x2
+ 2119              		.4byte	.Ldebug_info0
+ 2120 0000 C2000000 		.4byte	0x45e
+ 2121 0004 0200     		.4byte	0x1f2
+ 2122 0006 00000000 		.ascii	"dhcpTimer\000"
+ 2123 000a 5E040000 		.4byte	0x205
+ 2124 000e F2010000 		.ascii	"dhcpGetOption\000"
+ 2125 0012 64686370 		.4byte	0x274
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 44
+
+
+ 2125      54696D65 
+ 2125      7200
+ 2126 001c 05020000 		.ascii	"dhcpSetOption\000"
+ 2127 0020 64686370 		.4byte	0x2ce
+ 2127      4765744F 
+ 2127      7074696F 
+ 2127      6E00
+ 2128 002e 74020000 		.ascii	"dhcpPrintHeader\000"
+ 2129 0032 64686370 		.4byte	0x2ff
+ 2129      5365744F 
+ 2129      7074696F 
+ 2129      6E00
+ 2130 0040 CE020000 		.ascii	"dhcpInit\000"
+ 2131 0044 64686370 		.4byte	0x327
+ 2131      5072696E 
+ 2131      74486561 
+ 2131      64657200 
+ 2132 0054 FF020000 		.ascii	"dhcpRequest\000"
+ 2133 0058 64686370 		.4byte	0x35c
+ 2133      496E6974 
+ 2133      00
+ 2134 0061 27030000 		.ascii	"dhcpRelease\000"
+ 2135 0065 64686370 		.4byte	0x39e
+ 2135      52657175 
+ 2135      65737400 
+ 2136 0071 5C030000 		.ascii	"dhcpIn\000"
+ 2137 0075 64686370 		.4byte	0x427
+ 2137      52656C65 
+ 2137      61736500 
+ 2138 0081 9E030000 		.ascii	"DhcpServerIP\000"
+ 2139 0085 64686370 		.4byte	0x439
+ 2139      496E00
+ 2140 008c 27040000 		.ascii	"DhcpTransactID\000"
+ 2141 0090 44686370 		.4byte	0x44b
+ 2141      53657276 
+ 2141      65724950 
+ 2141      00
+ 2142 009d 39040000 		.ascii	"DhcpLeaseTime\000"
+ 2143 00a1 44686370 		.4byte	0x0
+ 2143      5472616E 
+ 2143      73616374 
+ 2143      494400
+ 2144 00b0 4B040000 		.section	.debug_aranges,"",%progbits
+ 2145 00b4 44686370 		.4byte	0x1c
+ 2145      4C656173 
+ 2145      6554696D 
+ 2145      6500
+ 2146 00c2 00000000 		.2byte	0x2
+ 2147              		.4byte	.Ldebug_info0
+ 2148 0000 1C000000 		.byte	0x4
+ 2149 0004 0200     		.byte	0x0
+ 2150 0006 00000000 		.2byte	0x0
+ 2151 000a 04       		.2byte	0x0
+ 2152 000b 00       		.4byte	.Ltext0
+ 2153 000c 0000     		.4byte	.Letext0-.Ltext0
+ 2154 000e 0000     		.4byte	0x0
+ 2155 0010 00000000 		.4byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 45
+
+
+ 2156 0014 08070000 		.section	.debug_str,"MS",%progbits,1
+ 2157 0018 00000000 	.LASF39:
+ 2158 001c 00000000 		.ascii	"dhcpRequest\000"
+ 2159              	.LASF19:
+ 2160              		.ascii	"yiaddr\000"
+ 2161 0000 64686370 	.LASF48:
+ 2161      52657175 
+ 2161      65737400 
+ 2162              		.ascii	"DhcpLeaseTime\000"
+ 2163 000c 79696164 	.LASF29:
+ 2163      647200
+ 2164              		.ascii	"options\000"
+ 2165 0013 44686370 	.LASF47:
+ 2165      4C656173 
+ 2165      6554696D 
+ 2165      6500
+ 2166              		.ascii	"DhcpTransactID\000"
+ 2167 0021 6F707469 	.LASF28:
+ 2167      6F6E7300 
+ 2168              		.ascii	"cookie\000"
+ 2169 0029 44686370 	.LASF49:
+ 2169      5472616E 
+ 2169      73616374 
+ 2169      494400
+ 2170              		.ascii	"GNU C 4.1.1 (WinARM)\000"
+ 2171 0038 636F6F6B 	.LASF21:
+ 2171      696500
+ 2172              		.ascii	"giaddr\000"
+ 2173 003f 474E5520 	.LASF23:
+ 2173      4320342E 
+ 2173      312E3120 
+ 2173      2857696E 
+ 2173      41524D29 
+ 2174              		.ascii	"sname\000"
+ 2175 0054 67696164 	.LASF22:
+ 2175      647200
+ 2176              		.ascii	"chaddr\000"
+ 2177 005b 736E616D 	.LASF32:
+ 2177      6500
+ 2178              		.ascii	"optvalptr\000"
+ 2179 0061 63686164 	.LASF3:
+ 2179      647200
+ 2180              		.ascii	"short int\000"
+ 2181 0068 6F707476 	.LASF25:
+ 2181      616C7074 
+ 2181      7200
+ 2182              		.ascii	"netBootpHeader\000"
+ 2183 0072 73686F72 	.LASF10:
+ 2183      7420696E 
+ 2183      7400
+ 2184              		.ascii	"uint8_t\000"
+ 2185 007c 6E657442 	.LASF36:
+ 2185      6F6F7470 
+ 2185      48656164 
+ 2185      657200
+ 2186              		.ascii	"packet\000"
+ 2187 008b 75696E74 	.LASF12:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 46
+
+
+ 2187      385F7400 
+ 2188              		.ascii	"uint32_t\000"
+ 2189 0093 7061636B 	.LASF31:
+ 2189      657400
+ 2190              		.ascii	"optlen\000"
+ 2191 009a 75696E74 	.LASF7:
+ 2191      33325F74 
+ 2191      00
+ 2192              		.ascii	"long long int\000"
+ 2193 00a3 6F70746C 	.LASF5:
+ 2193      656E00
+ 2194              		.ascii	"long int\000"
+ 2195 00aa 6C6F6E67 	.LASF35:
+ 2195      206C6F6E 
+ 2195      6720696E 
+ 2195      7400
+ 2196              		.ascii	"dhcpPrintHeader\000"
+ 2197 00b8 6C6F6E67 	.LASF50:
+ 2197      20696E74 
+ 2197      00
+ 2198              		.ascii	"c:\\code\\arm\\armlib/net/dhcp.c\000"
+ 2199 00c1 64686370 	.LASF51:
+ 2199      5072696E 
+ 2199      74486561 
+ 2199      64657200 
+ 2200              		.ascii	"C:\\Code\\ARM\\lpc2000\\EtherDrive\\etherdrive-net\000"
+ 2201 00d1 633A5C63 	.LASF44:
+ 2201      6F64655C 
+ 2201      61726D5C 
+ 2201      61726D6C 
+ 2201      69622F6E 
+ 2202              		.ascii	"netmask\000"
+ 2203 00ef 433A5C43 	.LASF0:
+ 2203      6F64655C 
+ 2203      41524D5C 
+ 2203      6C706332 
+ 2203      3030305C 
+ 2204              		.ascii	"unsigned char\000"
+ 2205 011d 6E65746D 	.LASF24:
+ 2205      61736B00 
+ 2206              		.ascii	"file\000"
+ 2207 0125 756E7369 	.LASF1:
+ 2207      676E6564 
+ 2207      20636861 
+ 2207      7200
+ 2208              		.ascii	"signed char\000"
+ 2209 0133 66696C65 	.LASF17:
+ 2209      00
+ 2210              		.ascii	"flags\000"
+ 2211 0138 7369676E 	.LASF6:
+ 2211      65642063 
+ 2211      68617200 
+ 2212              		.ascii	"long long unsigned int\000"
+ 2213 0144 666C6167 	.LASF8:
+ 2213      7300
+ 2214              		.ascii	"unsigned int\000"
+ 2215 014a 6C6F6E67 	.LASF11:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 47
+
+
+ 2215      206C6F6E 
+ 2215      6720756E 
+ 2215      7369676E 
+ 2215      65642069 
+ 2216              		.ascii	"uint16_t\000"
+ 2217 0161 756E7369 	.LASF46:
+ 2217      676E6564 
+ 2217      20696E74 
+ 2217      00
+ 2218              		.ascii	"DhcpServerIP\000"
+ 2219 016e 75696E74 	.LASF2:
+ 2219      31365F74 
+ 2219      00
+ 2220              		.ascii	"short unsigned int\000"
+ 2221 0177 44686370 	.LASF34:
+ 2221      53657276 
+ 2221      65724950 
+ 2221      00
+ 2222              		.ascii	"dhcpSetOption\000"
+ 2223 0184 73686F72 	.LASF52:
+ 2223      7420756E 
+ 2223      7369676E 
+ 2223      65642069 
+ 2223      6E7400
+ 2224              		.ascii	"dhcpTimer\000"
+ 2225 0197 64686370 	.LASF9:
+ 2225      5365744F 
+ 2225      7074696F 
+ 2225      6E00
+ 2226              		.ascii	"char\000"
+ 2227 01a5 64686370 	.LASF20:
+ 2227      54696D65 
+ 2227      7200
+ 2228              		.ascii	"siaddr\000"
+ 2229 01af 63686172 	.LASF45:
+ 2229      00
+ 2230              		.ascii	"gateway\000"
+ 2231 01b4 73696164 	.LASF43:
+ 2231      647200
+ 2232              		.ascii	"msgtype\000"
+ 2233 01bb 67617465 	.LASF42:
+ 2233      77617900 
+ 2234              		.ascii	"dhcpIn\000"
+ 2235 01c3 6D736774 	.LASF27:
+ 2235      79706500 
+ 2236              		.ascii	"bootp\000"
+ 2237 01cb 64686370 	.LASF4:
+ 2237      496E00
+ 2238              		.ascii	"long unsigned int\000"
+ 2239 01d2 626F6F74 	.LASF38:
+ 2239      7000
+ 2240              		.ascii	"macaddr\000"
+ 2241 01d8 6C6F6E67 	.LASF18:
+ 2241      20756E73 
+ 2241      69676E65 
+ 2241      6420696E 
+ 2241      7400
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 48
+
+
+ 2242              		.ascii	"ciaddr\000"
+ 2243 01ea 6D616361 	.LASF37:
+ 2243      64647200 
+ 2244              		.ascii	"dhcpInit\000"
+ 2245 01f2 63696164 	.LASF14:
+ 2245      647200
+ 2246              		.ascii	"hlen\000"
+ 2247 01f9 64686370 	.LASF16:
+ 2247      496E6974 
+ 2247      00
+ 2248              		.ascii	"secs\000"
+ 2249 0202 686C656E 	.LASF40:
+ 2249      00
+ 2250              		.ascii	"dhcpRelease\000"
+ 2251 0207 73656373 	.LASF41:
+ 2251      00
+ 2252              		.ascii	"optptr\000"
+ 2253 020c 64686370 	.LASF13:
+ 2253      52656C65 
+ 2253      61736500 
+ 2254              		.ascii	"htype\000"
+ 2255 0218 6F707470 	.LASF15:
+ 2255      747200
+ 2256              		.ascii	"hops\000"
+ 2257 021f 68747970 	.LASF33:
+ 2257      6500
+ 2258              		.ascii	"dhcpGetOption\000"
+ 2259 0225 686F7073 	.LASF26:
+ 2259      00
+ 2260              		.ascii	"netDhcpHeader\000"
+ 2261 022a 64686370 	.LASF30:
+ 2261      4765744F 
+ 2261      7074696F 
+ 2261      6E00
+ 2262              		.ascii	"optcode\000"
+ 2263 0238 6E657444 		.ident	"GCC: (GNU) 4.1.1 (WinARM)"
+ 2263      68637048 
+ 2263      65616465 
+ 2263      7200
+ 2264              	...
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s 			page 49
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 dhcp.c
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:13     .text:00000000 dhcpTimer
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:22     .text:00000000 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:32     .text:00000018 $d
+                            *COM*:00000004 DhcpLeaseTime
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:38     .text:0000001c dhcpGetOption
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:44     .text:0000001c $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:112    .text:000000a4 dhcpSetOption
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:203    .text:00000108 dhcpPrintHeader
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:318    .text:00000260 $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:334    .text:0000028c dhcpInit
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:339    .text:0000028c $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:360    .text:000002bc $d
+                            *COM*:00000004 DhcpTransactID
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:367    .text:000002c4 dhcpRequest
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:372    .text:000002c4 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:462    .text:000003d0 $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:468    .text:000003d4 dhcpRelease
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:473    .text:000003d4 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:590    .text:00000534 $d
+                            *COM*:00000004 DhcpServerIP
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:598    .text:00000540 dhcpIn
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:604    .text:00000540 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccq6aaaa.s:757    .text:000006fc $d
+
+UNDEFINED SYMBOLS
+rprintfStr
+rprintfCRLF
+rprintfu32
+htonl
+netPrintIPAddr
+netPrintEthAddr
+nicGetMacAddress
+netstackGetBuffer
+ipGetConfig
+udpSend
+ipSetConfig

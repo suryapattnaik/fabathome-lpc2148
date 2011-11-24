@@ -1,0 +1,43 @@
+# 
+# The following command will be executed on
+# reset (because of run_and_init in the config-file)
+# - wait for target halt
+# - erase memory
+# - reset target and wait for halt
+# - flash content of file into target-memory
+# - shutdown openocd
+#
+# created by William Westrick
+# referencing OpenOCD wiki documentation
+#  http://openfacts.berlios.de/index-en.phtml?title=OpenOCD
+# based on information from Martin Thomas 
+# http://www.siwawi.arubi.uni-kl.de/avr_projects/arm_projects
+# based on information from Dominic Rath 
+#
+# 12 February 2008
+#   Original release
+# 
+# 24 April 2008
+#   Updated syntax to match new versions of OpenOCD
+#
+# works with OpenOCD r520 under Linux
+
+arm7_9 dcc_downloads disable
+wait_halt           #wait until halted (waits short time before timing out)
+sleep 10            #wait for 10ms
+poll                #get device current state
+#mdb 0x0 72         #read/display first 72 bytes of memory
+flash probe 0       #find flash
+flash erase_sector 0 0 26  #erase all flash banks
+#mdb 0x0 72         #read/display first 72 bytes of memory
+sleep 10            #wait 10ms
+reset run_and_halt  #reset the processor and then halt
+sleep 100           #wait for 200ms
+wait_halt           #wait until halted (waits short time before timing out)
+#mdb 0x0 72         #read/display first 72 bytes of memory
+flash write_image main.bin 0 bin
+sleep 200            #wait for 10ms
+#mdb 0x0 72         #read/display first 72 bytes of memory
+reset run           #reset and run the processor
+sleep 10            #wait for 10ms
+shutdown            #shutdown openocd connection

@@ -1,0 +1,1131 @@
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 1
+
+
+   1              		.file	"net.c"
+   2              		.section	.debug_abbrev,"",%progbits
+   3              	.Ldebug_abbrev0:
+   4              		.section	.debug_info,"",%progbits
+   5              	.Ldebug_info0:
+   6              		.section	.debug_line,"",%progbits
+   7              	.Ldebug_line0:
+   8 0000 A7000000 		.text
+   8      02006B00 
+   8      00000201 
+   8      FB0E0D00 
+   8      01010101 
+   9              	.Ltext0:
+  10              		.align	2
+  11              		.global	htons
+  12              		.type	htons, %function
+  13              	htons:
+  14              	.LFB2:
+  15              		.file 1 "c:\\code\\arm\\armlib/net/net.c"
+   1:c:\code\arm\armlib/net\net.c **** /*! \file net.c \brief Network support library. */
+   2:c:\code\arm\armlib/net\net.c **** //*****************************************************************************
+   3:c:\code\arm\armlib/net\net.c **** //
+   4:c:\code\arm\armlib/net\net.c **** // File Name	: 'net.c'
+   5:c:\code\arm\armlib/net\net.c **** // Title		: Network support library
+   6:c:\code\arm\armlib/net\net.c **** // Author		: Pascal Stang
+   7:c:\code\arm\armlib/net\net.c **** // Created		: 8/30/2004
+   8:c:\code\arm\armlib/net\net.c **** // Revised		: 7/3/2005
+   9:c:\code\arm\armlib/net\net.c **** // Version		: 0.1
+  10:c:\code\arm\armlib/net\net.c **** // Target MCU	: Atmel AVR series
+  11:c:\code\arm\armlib/net\net.c **** // Editor Tabs	: 4
+  12:c:\code\arm\armlib/net\net.c **** //
+  13:c:\code\arm\armlib/net\net.c **** //*****************************************************************************
+  14:c:\code\arm\armlib/net\net.c **** 
+  15:c:\code\arm\armlib/net\net.c **** #include <stdint.h>
+  16:c:\code\arm\armlib/net\net.c **** #include "global.h"
+  17:c:\code\arm\armlib/net\net.c **** #include "rprintf.h"
+  18:c:\code\arm\armlib/net\net.c **** 
+  19:c:\code\arm\armlib/net\net.c **** #include "net.h"
+  20:c:\code\arm\armlib/net\net.c **** 
+  21:c:\code\arm\armlib/net\net.c **** uint16_t htons(uint16_t val)
+  22:c:\code\arm\armlib/net\net.c **** {
+  16              	 args = 0, pretend = 0, frame = 0
+  17              		@ frame_needed = 0, uses_anonymous_args = 0
+  18              		@ link register save eliminated.
+  19              	.LVL0:
+  20              		@ lr needed for prologue
+  21              		mov	r3, r0, asl #16
+  22 0000 0038A0E1 		.loc 1 22 0
+  23              		mov	r0, r3, lsr #24
+  24 0004 230CA0E1 	.LVL1:
+  25              		orr	r0, r0, r3, lsr #8
+  26 0008 230480E1 		mov	r0, r0, asl #16
+  27 000c 0008A0E1 		.loc 1 36 0
+  23:c:\code\arm\armlib/net\net.c **** 	return ((val<<8) | ((val>>8)&0xFF))&0x0000FFFF;
+  24:c:\code\arm\armlib/net\net.c **** /*
+  25:c:\code\arm\armlib/net\net.c **** 	int tmp;
+  26:c:\code\arm\armlib/net\net.c ****  
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 2
+
+
+  27:c:\code\arm\armlib/net\net.c ****  	__asm __volatile(
+  28:c:\code\arm\armlib/net\net.c ****  		"and	%1, %2, #0xff\n"
+  29:c:\code\arm\armlib/net\net.c ****  		"mov	%0, %2, lsr #8\n"
+  30:c:\code\arm\armlib/net\net.c ****  		"orr	%0, %0, %1, lsl #8"
+  31:c:\code\arm\armlib/net\net.c ****  	: "=r" (v), "=r" (tmp)
+  32:c:\code\arm\armlib/net\net.c ****  	: "r" (v));
+  33:c:\code\arm\armlib/net\net.c ****  
+  34:c:\code\arm\armlib/net\net.c ****  	return (v);
+  35:c:\code\arm\armlib/net\net.c **** */
+  36:c:\code\arm\armlib/net\net.c **** }
+  28              	 lsr #16
+  29 0010 2008A0E1 		bx	lr
+  30 0014 1EFF2FE1 	.LFE2:
+  31              		.size	htons, .-htons
+  32              		.align	2
+  33              		.global	htonl
+  34              		.type	htonl, %function
+  35              	htonl:
+  36              	.LFB3:
+  37              		.loc 1 39 0
+  37:c:\code\arm\armlib/net\net.c **** 
+  38:c:\code\arm\armlib/net\net.c **** uint32_t htonl(uint32_t val)
+  39:c:\code\arm\armlib/net\net.c **** {
+  38              	0, pretend = 0, frame = 0
+  39              		@ frame_needed = 0, uses_anonymous_args = 0
+  40              		@ link register save eliminated.
+  41              	.LVL2:
+  42              		@ lr needed for prologue
+  43              		.loc 1 57 0
+  40:c:\code\arm\armlib/net\net.c **** //	return (htons(val>>16) | (uint32_t)htons(val&0x0000FFFF)<<16);
+  41:c:\code\arm\armlib/net\net.c **** /*	return (((val&0xFF000000)>>24) |
+  42:c:\code\arm\armlib/net\net.c **** 			((val&0x00FF0000)>>8)  |
+  43:c:\code\arm\armlib/net\net.c **** 			((val&0x0000FF00)<<8)  |
+  44:c:\code\arm\armlib/net\net.c **** 			((val&0x000000FF)<<24) );
+  45:c:\code\arm\armlib/net\net.c **** */
+  46:c:\code\arm\armlib/net\net.c ****  	int tmp;
+  47:c:\code\arm\armlib/net\net.c ****  
+  48:c:\code\arm\armlib/net\net.c ****  	__asm __volatile(
+  49:c:\code\arm\armlib/net\net.c ****  		"eor	%1, %2, %2, ror #16\n"
+  50:c:\code\arm\armlib/net\net.c ****  		"bic	%1, %1, #0x00ff0000\n"
+  51:c:\code\arm\armlib/net\net.c ****  		"mov	%0, %2, ror #8\n"
+  52:c:\code\arm\armlib/net\net.c ****  		"eor	%0, %0, %1, lsr #8"
+  53:c:\code\arm\armlib/net\net.c ****  	: "=r" (val), "=r" (tmp)
+  54:c:\code\arm\armlib/net\net.c ****  	: "r" (val));
+  55:c:\code\arm\armlib/net\net.c ****  
+  56:c:\code\arm\armlib/net\net.c ****  	return (val);
+  57:c:\code\arm\armlib/net\net.c **** }
+  44              	3, r0, r0, ror #16
+  45 0018 603820E0 	bic	r3, r3, #0x00ff0000
+  46 001c FF38C3E3 	mov	r0, r0, ror #8
+  47 0020 6004A0E1 	eor	r0, r0, r3, lsr #8
+  48 0024 230420E0 	.LVL3:
+  49              		bx	lr
+  50 0028 1EFF2FE1 	.LFE3:
+  51              		.size	htonl, .-htonl
+  52              		.align	2
+  53              		.global	netChecksum
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 3
+
+
+  54              		.type	netChecksum, %function
+  55              	netChecksum:
+  56              	.LFB4:
+  57              		.loc 1 61 0
+  58:c:\code\arm\armlib/net\net.c **** 
+  59:c:\code\arm\armlib/net\net.c **** 
+  60:c:\code\arm\armlib/net\net.c **** uint16_t netChecksum(void *data, uint16_t len)
+  61:c:\code\arm\armlib/net\net.c **** {
+  58              	retend = 0, frame = 0
+  59              		@ frame_needed = 0, uses_anonymous_args = 0
+  60              		@ link register save eliminated.
+  61              	.LVL4:
+  62              		@ lr needed for prologue
+  63              		mov	r1, r1, asl #16
+  64 002c 0118A0E1 	.LVL5:
+  65              		mov	r1, r1, lsr #16
+  66 0030 2118A0E1 	.LVL6:
+  67              		.loc 1 65 0
+  62:c:\code\arm\armlib/net\net.c ****     register uint32_t sum = 0;
+  63:c:\code\arm\armlib/net\net.c **** 
+  64:c:\code\arm\armlib/net\net.c ****     for (;;) {
+  65:c:\code\arm\armlib/net\net.c ****         if (len < 2)
+  68              	1
+  69 0034 010051E3 		movls	ip, #0
+  70 0038 00C0A093 	.LVL7:
+  71              		bls	.L8
+  72 003c 0700009A 		mov	ip, #0
+  73 0040 00C0A0E3 	.L9:
+  74              		.loc 1 68 0
+  66:c:\code\arm\armlib/net\net.c ****             break;
+  67:c:\code\arm\armlib/net\net.c **** 		//sum += *((uint16_t *)data)++;
+  68:c:\code\arm\armlib/net\net.c **** 		sum += *((uint16_t *)data);
+  75              	3, [r0], #2
+  76 0044 B230D0E0 		add	ip, ip, r3
+  77 0048 03C08CE0 		.loc 1 70 0
+  69:c:\code\arm\armlib/net\net.c **** 		data+=2;
+  70:c:\code\arm\armlib/net\net.c ****         len -= 2;
+  78              	b	r3, r1, #2
+  79 004c 023041E2 		mov	r3, r3, asl #16
+  80 0050 0338A0E1 		mov	r1, r3, lsr #16
+  81 0054 2318A0E1 		.loc 1 65 0
+  82              		cmp	r1, #1
+  83 0058 010051E3 		bhi	.L9
+  84 005c F8FFFF8A 	.L8:
+  85              		.loc 1 72 0
+  71:c:\code\arm\armlib/net\net.c ****     }
+  72:c:\code\arm\armlib/net\net.c ****     if (len)
+  86              	 #0
+  87 0060 000051E3 		.loc 1 73 0
+  73:c:\code\arm\armlib/net\net.c ****         sum += *(uint8_t *) data;
+  88              	drneb	r3, [r0, #0]	@ zero_extendqisi2
+  89 0064 0030D015 		addne	ip, ip, r3
+  90 0068 03C08C10 		.loc 1 75 0
+  74:c:\code\arm\armlib/net\net.c **** 
+  75:c:\code\arm\armlib/net\net.c ****     while ((len = (uint16_t) (sum >> 16)) != 0)
+  91              	vs	r2, ip, lsr #16
+  92 006c 2C28B0E1 	.LVL8:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 4
+
+
+  93              		beq	.L12
+  94 0070 0300000A 	.L15:
+  95              		.loc 1 76 0
+  76:c:\code\arm\armlib/net\net.c ****         sum = (uint16_t) sum + len;
+  96              	r3, ip, asl #16
+  97 0074 0C38A0E1 		add	ip, r2, r3, lsr #16
+  98 0078 23C882E0 		.loc 1 75 0
+  99              		movs	r2, ip, lsr #16
+ 100 007c 2C28B0E1 		bne	.L15
+ 101 0080 FBFFFF1A 	.L12:
+ 102              		mvn	r0, ip
+ 103 0084 0C00E0E1 	.LVL9:
+ 104              		mov	r0, r0, asl #16
+ 105 0088 0008A0E1 		.loc 1 79 0
+  77:c:\code\arm\armlib/net\net.c **** 
+  78:c:\code\arm\armlib/net\net.c ****     return (uint16_t) sum ^ 0xFFFF;
+  79:c:\code\arm\armlib/net\net.c **** }
+ 106              	0, lsr #16
+ 107 008c 2008A0E1 		bx	lr
+ 108 0090 1EFF2FE1 	.LFE4:
+ 109              		.size	netChecksum, .-netChecksum
+ 110              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 111              		.align	2
+ 112              	.LC0:
+ 113              		.ascii	"%d.%d.%d.%d\000"
+ 114 0000 25642E25 		.text
+ 114      642E2564 
+ 114      2E256400 
+ 115              		.align	2
+ 116              		.global	netPrintIPAddr
+ 117              		.type	netPrintIPAddr, %function
+ 118              	netPrintIPAddr:
+ 119              	.LFB6:
+ 120              		.loc 1 97 0
+  80:c:\code\arm\armlib/net\net.c **** 
+  81:c:\code\arm\armlib/net\net.c **** void netPrintEthAddr(struct netEthAddr* ethaddr)
+  82:c:\code\arm\armlib/net\net.c **** {
+  83:c:\code\arm\armlib/net\net.c **** 	rprintfu08(ethaddr->addr[0]);
+  84:c:\code\arm\armlib/net\net.c **** 	rprintfChar(':');
+  85:c:\code\arm\armlib/net\net.c **** 	rprintfu08(ethaddr->addr[1]);
+  86:c:\code\arm\armlib/net\net.c **** 	rprintfChar(':');
+  87:c:\code\arm\armlib/net\net.c **** 	rprintfu08(ethaddr->addr[2]);
+  88:c:\code\arm\armlib/net\net.c **** 	rprintfChar(':');
+  89:c:\code\arm\armlib/net\net.c **** 	rprintfu08(ethaddr->addr[3]);
+  90:c:\code\arm\armlib/net\net.c **** 	rprintfChar(':');
+  91:c:\code\arm\armlib/net\net.c **** 	rprintfu08(ethaddr->addr[4]);
+  92:c:\code\arm\armlib/net\net.c **** 	rprintfChar(':');
+  93:c:\code\arm\armlib/net\net.c **** 	rprintfu08(ethaddr->addr[5]);
+  94:c:\code\arm\armlib/net\net.c **** }
+  95:c:\code\arm\armlib/net\net.c **** 
+  96:c:\code\arm\armlib/net\net.c **** void netPrintIPAddr(uint32_t ipaddr)
+  97:c:\code\arm\armlib/net\net.c **** {
+ 121              	etend = 0, frame = 4
+ 122              		@ frame_needed = 0, uses_anonymous_args = 0
+ 123              	.LVL10:
+ 124              		str	lr, [sp, #-4]!
+ 125 0094 04E02DE5 	.LCFI0:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 5
+
+
+ 126              		sub	sp, sp, #12
+ 127 0098 0CD04DE2 	.LCFI1:
+ 128              		str	r0, [sp, #8]
+ 129 009c 08008DE5 		.loc 1 98 0
+  98:c:\code\arm\armlib/net\net.c **** 	rprintf("%d.%d.%d.%d",
+ 130              	 [sp, #11]	@ zero_extendqisi2
+ 131 00a0 0B20DDE5 		ldrb	r3, [sp, #10]	@ zero_extendqisi2
+ 132 00a4 0A30DDE5 		ldrb	r1, [sp, #9]	@ zero_extendqisi2
+ 133 00a8 0910DDE5 		str	r1, [sp, #0]
+ 134 00ac 00108DE5 		ldrb	r1, [sp, #8]	@ zero_extendqisi2
+ 135 00b0 0810DDE5 		str	r1, [sp, #4]
+ 136 00b4 04108DE5 		mov	r0, #0
+ 137 00b8 0000A0E3 	.LVL11:
+ 138              		ldr	r1, .L20
+ 139 00bc 08109FE5 		bl	rprintf1RamRom
+ 140 00c0 FEFFFFEB 		.loc 1 103 0
+  99:c:\code\arm\armlib/net\net.c **** 		((unsigned char*)&ipaddr)[3],
+ 100:c:\code\arm\armlib/net\net.c **** 		((unsigned char*)&ipaddr)[2],
+ 101:c:\code\arm\armlib/net\net.c **** 		((unsigned char*)&ipaddr)[1],
+ 102:c:\code\arm\armlib/net\net.c **** 		((unsigned char*)&ipaddr)[0]);
+ 103:c:\code\arm\armlib/net\net.c **** }
+ 141              	, #12
+ 142 00c4 0CD08DE2 		ldmfd	sp!, {pc}
+ 143 00c8 0080BDE8 	.L21:
+ 144              		.align	2
+ 145              	.L20:
+ 146              		.word	.LC0
+ 147 00cc 00000000 	.LFE6:
+ 148              		.size	netPrintIPAddr, .-netPrintIPAddr
+ 149              		.align	2
+ 150              		.global	netPrintEthAddr
+ 151              		.type	netPrintEthAddr, %function
+ 152              	netPrintEthAddr:
+ 153              	.LFB5:
+ 154              		.loc 1 82 0
+ 155              		@ args = 0, pretend = 0, frame = 0
+ 156              		@ frame_needed = 0, uses_anonymous_args = 0
+ 157              	.LVL12:
+ 158              		stmfd	sp!, {r4, lr}
+ 159 00d0 10402DE9 	.LCFI2:
+ 160              		mov	r4, r0
+ 161 00d4 0040A0E1 		.loc 1 83 0
+ 162              		ldrb	r0, [r0, #0]	@ zero_extendqisi2
+ 163 00d8 0000D0E5 	.LVL13:
+ 164              		bl	rprintfu08
+ 165 00dc FEFFFFEB 		.loc 1 84 0
+ 166              		mov	r0, #58
+ 167 00e0 3A00A0E3 		bl	rprintfChar
+ 168 00e4 FEFFFFEB 		.loc 1 85 0
+ 169              		ldrb	r0, [r4, #1]	@ zero_extendqisi2
+ 170 00e8 0100D4E5 		bl	rprintfu08
+ 171 00ec FEFFFFEB 		.loc 1 86 0
+ 172              		mov	r0, #58
+ 173 00f0 3A00A0E3 		bl	rprintfChar
+ 174 00f4 FEFFFFEB 		.loc 1 87 0
+ 175              		ldrb	r0, [r4, #2]	@ zero_extendqisi2
+ 176 00f8 0200D4E5 		bl	rprintfu08
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 6
+
+
+ 177 00fc FEFFFFEB 		.loc 1 88 0
+ 178              		mov	r0, #58
+ 179 0100 3A00A0E3 		bl	rprintfChar
+ 180 0104 FEFFFFEB 		.loc 1 89 0
+ 181              		ldrb	r0, [r4, #3]	@ zero_extendqisi2
+ 182 0108 0300D4E5 		bl	rprintfu08
+ 183 010c FEFFFFEB 		.loc 1 90 0
+ 184              		mov	r0, #58
+ 185 0110 3A00A0E3 		bl	rprintfChar
+ 186 0114 FEFFFFEB 		.loc 1 91 0
+ 187              		ldrb	r0, [r4, #4]	@ zero_extendqisi2
+ 188 0118 0400D4E5 		bl	rprintfu08
+ 189 011c FEFFFFEB 		.loc 1 92 0
+ 190              		mov	r0, #58
+ 191 0120 3A00A0E3 		bl	rprintfChar
+ 192 0124 FEFFFFEB 		.loc 1 93 0
+ 193              		ldrb	r0, [r4, #5]	@ zero_extendqisi2
+ 194 0128 0500D4E5 		bl	rprintfu08
+ 195 012c FEFFFFEB 		.loc 1 94 0
+ 196              		ldmfd	sp!, {r4, pc}
+ 197 0130 1080BDE8 	.LFE5:
+ 198              		.size	netPrintEthAddr, .-netPrintEthAddr
+ 199              		.section	.debug_frame,"",%progbits
+ 200              	.Lframe0:
+ 201              		.4byte	.LECIE0-.LSCIE0
+ 202 0000 0C000000 	.LSCIE0:
+ 203              		.4byte	0xffffffff
+ 204 0004 FFFFFFFF 		.byte	0x1
+ 205 0008 01       		.ascii	"\000"
+ 206 0009 00       		.uleb128 0x1
+ 207 000a 01       		.sleb128 -4
+ 208 000b 7C       		.byte	0xe
+ 209 000c 0E       		.byte	0xc
+ 210 000d 0C       		.uleb128 0xd
+ 211 000e 0D       		.uleb128 0x0
+ 212 000f 00       		.align	2
+ 213              	.LECIE0:
+ 214              	.LSFDE0:
+ 215              		.4byte	.LEFDE0-.LASFDE0
+ 216 0010 0C000000 	.LASFDE0:
+ 217              		.4byte	.Lframe0
+ 218 0014 00000000 		.4byte	.LFB2
+ 219 0018 00000000 		.4byte	.LFE2-.LFB2
+ 220 001c 18000000 		.align	2
+ 221              	.LEFDE0:
+ 222              	.LSFDE2:
+ 223              		.4byte	.LEFDE2-.LASFDE2
+ 224 0020 0C000000 	.LASFDE2:
+ 225              		.4byte	.Lframe0
+ 226 0024 00000000 		.4byte	.LFB3
+ 227 0028 18000000 		.4byte	.LFE3-.LFB3
+ 228 002c 14000000 		.align	2
+ 229              	.LEFDE2:
+ 230              	.LSFDE4:
+ 231              		.4byte	.LEFDE4-.LASFDE4
+ 232 0030 0C000000 	.LASFDE4:
+ 233              		.4byte	.Lframe0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 7
+
+
+ 234 0034 00000000 		.4byte	.LFB4
+ 235 0038 2C000000 		.4byte	.LFE4-.LFB4
+ 236 003c 68000000 		.align	2
+ 237              	.LEFDE4:
+ 238              	.LSFDE6:
+ 239              		.4byte	.LEFDE6-.LASFDE6
+ 240 0040 14000000 	.LASFDE6:
+ 241              		.4byte	.Lframe0
+ 242 0044 00000000 		.4byte	.LFB6
+ 243 0048 94000000 		.4byte	.LFE6-.LFB6
+ 244 004c 3C000000 		.byte	0x4
+ 245 0050 44       		.4byte	.LCFI0-.LFB6
+ 246              		.byte	0xe
+ 247 0051 0E       		.uleb128 0x4
+ 248 0052 04       		.byte	0x4
+ 249 0053 44       		.4byte	.LCFI1-.LCFI0
+ 250              		.byte	0xe
+ 251 0054 0E       		.uleb128 0x10
+ 252 0055 10       		.byte	0x8e
+ 253 0056 8E       		.uleb128 0x1
+ 254 0057 01       		.align	2
+ 255              	.LEFDE6:
+ 256              	.LSFDE8:
+ 257              		.4byte	.LEFDE8-.LASFDE8
+ 258 0058 14000000 	.LASFDE8:
+ 259              		.4byte	.Lframe0
+ 260 005c 00000000 		.4byte	.LFB5
+ 261 0060 D0000000 		.4byte	.LFE5-.LFB5
+ 262 0064 64000000 		.byte	0x4
+ 263 0068 44       		.4byte	.LCFI2-.LFB5
+ 264              		.byte	0xe
+ 265 0069 0E       		.uleb128 0x8
+ 266 006a 08       		.byte	0x8e
+ 267 006b 8E       		.uleb128 0x1
+ 268 006c 01       		.byte	0x84
+ 269 006d 84       		.uleb128 0x2
+ 270 006e 02       		.align	2
+ 271 006f 00       	.LEFDE8:
+ 272              		.file 2 "c:\\programa\\winarm/arm-elf/include/stdint.h"
+ 273              		.file 3 "c:\\code\\arm\\armlib/net/net.h"
+ 274              		.text
+ 275              	.Letext0:
+ 276              		.section	.debug_loc,"",%progbits
+ 277              	.Ldebug_loc0:
+ 278              	.LLST1:
+ 279              		.4byte	.LVL0-.Ltext0
+ 280 0000 00000000 		.4byte	.LVL1-.Ltext0
+ 281 0004 08000000 		.2byte	0x1
+ 282 0008 0100     		.byte	0x50
+ 283 000a 50       		.4byte	0x0
+ 284 000b 00000000 		.4byte	0x0
+ 285 000f 00000000 	.LLST3:
+ 286              		.4byte	.LVL2-.Ltext0
+ 287 0013 18000000 		.4byte	.LVL3-.Ltext0
+ 288 0017 28000000 		.2byte	0x1
+ 289 001b 0100     		.byte	0x50
+ 290 001d 50       		.4byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 8
+
+
+ 291 001e 00000000 		.4byte	0x0
+ 292 0022 00000000 	.LLST5:
+ 293              		.4byte	.LVL4-.Ltext0
+ 294 0026 2C000000 		.4byte	.LVL9-.Ltext0
+ 295 002a 88000000 		.2byte	0x1
+ 296 002e 0100     		.byte	0x50
+ 297 0030 50       		.4byte	0x0
+ 298 0031 00000000 		.4byte	0x0
+ 299 0035 00000000 	.LLST6:
+ 300              		.4byte	.LVL4-.Ltext0
+ 301 0039 2C000000 		.4byte	.LVL5-.Ltext0
+ 302 003d 30000000 		.2byte	0x1
+ 303 0041 0100     		.byte	0x51
+ 304 0043 51       		.4byte	.LVL6-.Ltext0
+ 305 0044 34000000 		.4byte	.LVL8-.Ltext0
+ 306 0048 70000000 		.2byte	0x1
+ 307 004c 0100     		.byte	0x51
+ 308 004e 51       		.4byte	.LVL8-.Ltext0
+ 309 004f 70000000 		.4byte	.LFE4-.Ltext0
+ 310 0053 94000000 		.2byte	0x1
+ 311 0057 0100     		.byte	0x52
+ 312 0059 52       		.4byte	0x0
+ 313 005a 00000000 		.4byte	0x0
+ 314 005e 00000000 	.LLST7:
+ 315              		.4byte	.LFB6-.Ltext0
+ 316 0062 94000000 		.4byte	.LCFI0-.Ltext0
+ 317 0066 98000000 		.2byte	0x1
+ 318 006a 0100     		.byte	0x5d
+ 319 006c 5D       		.4byte	.LCFI0-.Ltext0
+ 320 006d 98000000 		.4byte	.LCFI1-.Ltext0
+ 321 0071 9C000000 		.2byte	0x2
+ 322 0075 0200     		.byte	0x7d
+ 323 0077 7D       		.sleb128 4
+ 324 0078 04       		.4byte	.LCFI1-.Ltext0
+ 325 0079 9C000000 		.4byte	.LFE6-.Ltext0
+ 326 007d D0000000 		.2byte	0x2
+ 327 0081 0200     		.byte	0x7d
+ 328 0083 7D       		.sleb128 16
+ 329 0084 10       		.4byte	0x0
+ 330 0085 00000000 		.4byte	0x0
+ 331 0089 00000000 	.LLST8:
+ 332              		.4byte	.LVL10-.Ltext0
+ 333 008d 94000000 		.4byte	.LVL11-.Ltext0
+ 334 0091 BC000000 		.2byte	0x1
+ 335 0095 0100     		.byte	0x50
+ 336 0097 50       		.4byte	.LVL11-.Ltext0
+ 337 0098 BC000000 		.4byte	.LFE6-.Ltext0
+ 338 009c D0000000 		.2byte	0x2
+ 339 00a0 0200     		.byte	0x91
+ 340 00a2 91       		.sleb128 -12
+ 341 00a3 74       		.4byte	0x0
+ 342 00a4 00000000 		.4byte	0x0
+ 343 00a8 00000000 	.LLST9:
+ 344              		.4byte	.LFB5-.Ltext0
+ 345 00ac D0000000 		.4byte	.LCFI2-.Ltext0
+ 346 00b0 D4000000 		.2byte	0x1
+ 347 00b4 0100     		.byte	0x5d
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 9
+
+
+ 348 00b6 5D       		.4byte	.LCFI2-.Ltext0
+ 349 00b7 D4000000 		.4byte	.LFE5-.Ltext0
+ 350 00bb 34010000 		.2byte	0x2
+ 351 00bf 0200     		.byte	0x7d
+ 352 00c1 7D       		.sleb128 8
+ 353 00c2 08       		.4byte	0x0
+ 354 00c3 00000000 		.4byte	0x0
+ 355 00c7 00000000 	.LLST10:
+ 356              		.4byte	.LVL12-.Ltext0
+ 357 00cb D0000000 		.4byte	.LVL13-.Ltext0
+ 358 00cf DC000000 		.2byte	0x1
+ 359 00d3 0100     		.byte	0x50
+ 360 00d5 50       		.4byte	.LVL13-.Ltext0
+ 361 00d6 DC000000 		.4byte	.LFE5-.Ltext0
+ 362 00da 34010000 		.2byte	0x1
+ 363 00de 0100     		.byte	0x54
+ 364 00e0 54       		.4byte	0x0
+ 365 00e1 00000000 		.4byte	0x0
+ 366 00e5 00000000 		.section	.debug_info
+ 367              		.4byte	0x1c6
+ 368 0000 C6010000 		.2byte	0x2
+ 369 0004 0200     		.4byte	.Ldebug_abbrev0
+ 370 0006 00000000 		.byte	0x4
+ 371 000a 04       		.uleb128 0x1
+ 372 000b 01       		.4byte	.Ldebug_line0
+ 373 000c 00000000 		.4byte	.Letext0
+ 374 0010 34010000 		.4byte	.Ltext0
+ 375 0014 00000000 		.4byte	.LASF21
+ 376 0018 0F000000 		.byte	0x1
+ 377 001c 01       		.4byte	.LASF22
+ 378 001d 31010000 		.4byte	.LASF23
+ 379 0021 85000000 		.uleb128 0x2
+ 380 0025 02       		.4byte	.LASF0
+ 381 0026 C1000000 		.byte	0x1
+ 382 002a 01       		.byte	0x6
+ 383 002b 06       		.uleb128 0x3
+ 384 002c 03       		.4byte	.LASF3
+ 385 002d 30000000 		.byte	0x2
+ 386 0031 02       		.byte	0x2e
+ 387 0032 2E       		.4byte	0x37
+ 388 0033 37000000 		.uleb128 0x2
+ 389 0037 02       		.4byte	.LASF1
+ 390 0038 B3000000 		.byte	0x1
+ 391 003c 01       		.byte	0x8
+ 392 003d 08       		.uleb128 0x2
+ 393 003e 02       		.4byte	.LASF2
+ 394 003f 41000000 		.byte	0x2
+ 395 0043 02       		.byte	0x5
+ 396 0044 05       		.uleb128 0x3
+ 397 0045 03       		.4byte	.LASF4
+ 398 0046 F1000000 		.byte	0x2
+ 399 004a 02       		.byte	0x3a
+ 400 004b 3A       		.4byte	0x50
+ 401 004c 50000000 		.uleb128 0x2
+ 402 0050 02       		.4byte	.LASF5
+ 403 0051 FA000000 		.byte	0x2
+ 404 0055 02       		.byte	0x7
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 10
+
+
+ 405 0056 07       		.uleb128 0x2
+ 406 0057 02       		.4byte	.LASF6
+ 407 0058 70000000 		.byte	0x4
+ 408 005c 04       		.byte	0x5
+ 409 005d 05       		.uleb128 0x3
+ 410 005e 03       		.4byte	.LASF7
+ 411 005f 38000000 		.byte	0x2
+ 412 0063 02       		.byte	0x54
+ 413 0064 54       		.4byte	0x69
+ 414 0065 69000000 		.uleb128 0x2
+ 415 0069 02       		.4byte	.LASF8
+ 416 006a 1F010000 		.byte	0x4
+ 417 006e 04       		.byte	0x7
+ 418 006f 07       		.uleb128 0x2
+ 419 0070 02       		.4byte	.LASF9
+ 420 0071 62000000 		.byte	0x8
+ 421 0075 08       		.byte	0x5
+ 422 0076 05       		.uleb128 0x2
+ 423 0077 02       		.4byte	.LASF10
+ 424 0078 CD000000 		.byte	0x8
+ 425 007c 08       		.byte	0x7
+ 426 007d 07       		.uleb128 0x4
+ 427 007e 04       		.ascii	"int\000"
+ 428 007f 696E7400 		.byte	0x4
+ 429 0083 04       		.byte	0x5
+ 430 0084 05       		.uleb128 0x2
+ 431 0085 02       		.4byte	.LASF11
+ 432 0086 E4000000 		.byte	0x4
+ 433 008a 04       		.byte	0x7
+ 434 008b 07       		.uleb128 0x2
+ 435 008c 02       		.4byte	.LASF12
+ 436 008d 0D010000 		.byte	0x1
+ 437 0091 01       		.byte	0x8
+ 438 0092 08       		.uleb128 0x5
+ 439 0093 05       		.4byte	0xae
+ 440 0094 AE000000 		.4byte	.LASF24
+ 441 0098 57000000 		.byte	0x6
+ 442 009c 06       		.byte	0x3
+ 443 009d 03       		.byte	0x23
+ 444 009e 23       		.uleb128 0x6
+ 445 009f 06       		.4byte	.LASF25
+ 446 00a0 79000000 		.byte	0x3
+ 447 00a4 03       		.byte	0x24
+ 448 00a5 24       		.4byte	0xae
+ 449 00a6 AE000000 		.byte	0x2
+ 450 00aa 02       		.byte	0x23
+ 451 00ab 23       		.uleb128 0x0
+ 452 00ac 00       		.byte	0x0
+ 453 00ad 00       		.uleb128 0x7
+ 454 00ae 07       		.4byte	0xbe
+ 455 00af BE000000 		.4byte	0x2c
+ 456 00b3 2C000000 		.uleb128 0x8
+ 457 00b7 08       		.4byte	0xbe
+ 458 00b8 BE000000 		.byte	0x5
+ 459 00bc 05       		.byte	0x0
+ 460 00bd 00       		.uleb128 0x2
+ 461 00be 02       		.4byte	.LASF8
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 11
+
+
+ 462 00bf 1F010000 		.byte	0x4
+ 463 00c3 04       		.byte	0x7
+ 464 00c4 07       		.uleb128 0x9
+ 465 00c5 09       		.4byte	0xf0
+ 466 00c6 F0000000 		.byte	0x1
+ 467 00ca 01       		.4byte	.LASF13
+ 468 00cb 2A000000 		.byte	0x1
+ 469 00cf 01       		.byte	0x16
+ 470 00d0 16       		.byte	0x1
+ 471 00d1 01       		.4byte	0x45
+ 472 00d2 45000000 		.4byte	.LFB2
+ 473 00d6 00000000 		.4byte	.LFE2
+ 474 00da 18000000 		.byte	0x1
+ 475 00de 01       		.byte	0x5d
+ 476 00df 5D       		.uleb128 0xa
+ 477 00e0 0A       		.ascii	"val\000"
+ 478 00e1 76616C00 		.byte	0x1
+ 479 00e5 01       		.byte	0x15
+ 480 00e6 15       		.4byte	0x45
+ 481 00e7 45000000 		.4byte	.LLST1
+ 482 00eb 00000000 		.byte	0x0
+ 483 00ef 00       		.uleb128 0x9
+ 484 00f0 09       		.4byte	0x128
+ 485 00f1 28010000 		.byte	0x1
+ 486 00f5 01       		.4byte	.LASF14
+ 487 00f6 24000000 		.byte	0x1
+ 488 00fa 01       		.byte	0x27
+ 489 00fb 27       		.byte	0x1
+ 490 00fc 01       		.4byte	0x5e
+ 491 00fd 5E000000 		.4byte	.LFB3
+ 492 0101 18000000 		.4byte	.LFE3
+ 493 0105 2C000000 		.byte	0x1
+ 494 0109 01       		.byte	0x5d
+ 495 010a 5D       		.uleb128 0xa
+ 496 010b 0A       		.ascii	"val\000"
+ 497 010c 76616C00 		.byte	0x1
+ 498 0110 01       		.byte	0x26
+ 499 0111 26       		.4byte	0x5e
+ 500 0112 5E000000 		.4byte	.LLST3
+ 501 0116 13000000 		.uleb128 0xb
+ 502 011a 0B       		.ascii	"tmp\000"
+ 503 011b 746D7000 		.byte	0x1
+ 504 011f 01       		.byte	0x2e
+ 505 0120 2E       		.4byte	0x7e
+ 506 0121 7E000000 		.byte	0x1
+ 507 0125 01       		.byte	0x53
+ 508 0126 53       		.byte	0x0
+ 509 0127 00       		.uleb128 0x9
+ 510 0128 09       		.4byte	0x16f
+ 511 0129 6F010000 		.byte	0x1
+ 512 012d 01       		.4byte	.LASF15
+ 513 012e 4B000000 		.byte	0x1
+ 514 0132 01       		.byte	0x3d
+ 515 0133 3D       		.byte	0x1
+ 516 0134 01       		.4byte	0x45
+ 517 0135 45000000 		.4byte	.LFB4
+ 518 0139 2C000000 		.4byte	.LFE4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 12
+
+
+ 519 013d 94000000 		.byte	0x1
+ 520 0141 01       		.byte	0x5d
+ 521 0142 5D       		.uleb128 0xc
+ 522 0143 0C       		.4byte	.LASF16
+ 523 0144 1A010000 		.byte	0x1
+ 524 0148 01       		.byte	0x3c
+ 525 0149 3C       		.4byte	0x16f
+ 526 014a 6F010000 		.4byte	.LLST5
+ 527 014e 26000000 		.uleb128 0xa
+ 528 0152 0A       		.ascii	"len\000"
+ 529 0153 6C656E00 		.byte	0x1
+ 530 0157 01       		.byte	0x3c
+ 531 0158 3C       		.4byte	0x45
+ 532 0159 45000000 		.4byte	.LLST6
+ 533 015d 39000000 		.uleb128 0xb
+ 534 0161 0B       		.ascii	"sum\000"
+ 535 0162 73756D00 		.byte	0x1
+ 536 0166 01       		.byte	0x3e
+ 537 0167 3E       		.4byte	0x5e
+ 538 0168 5E000000 		.byte	0x1
+ 539 016c 01       		.byte	0x5c
+ 540 016d 5C       		.byte	0x0
+ 541 016e 00       		.uleb128 0xd
+ 542 016f 0D       		.byte	0x4
+ 543 0170 04       		.uleb128 0xe
+ 544 0171 0E       		.4byte	0x19a
+ 545 0172 9A010000 		.byte	0x1
+ 546 0176 01       		.4byte	.LASF17
+ 547 0177 00000000 		.byte	0x1
+ 548 017b 01       		.byte	0x61
+ 549 017c 61       		.byte	0x1
+ 550 017d 01       		.4byte	.LFB6
+ 551 017e 94000000 		.4byte	.LFE6
+ 552 0182 D0000000 		.4byte	.LLST7
+ 553 0186 62000000 		.uleb128 0xc
+ 554 018a 0C       		.4byte	.LASF18
+ 555 018b 7E000000 		.byte	0x1
+ 556 018f 01       		.byte	0x60
+ 557 0190 60       		.4byte	0x5e
+ 558 0191 5E000000 		.4byte	.LLST8
+ 559 0195 8D000000 		.byte	0x0
+ 560 0199 00       		.uleb128 0xe
+ 561 019a 0E       		.4byte	0x1c3
+ 562 019b C3010000 		.byte	0x1
+ 563 019f 01       		.4byte	.LASF19
+ 564 01a0 4E010000 		.byte	0x1
+ 565 01a4 01       		.byte	0x52
+ 566 01a5 52       		.byte	0x1
+ 567 01a6 01       		.4byte	.LFB5
+ 568 01a7 D0000000 		.4byte	.LFE5
+ 569 01ab 34010000 		.4byte	.LLST9
+ 570 01af AC000000 		.uleb128 0xc
+ 571 01b3 0C       		.4byte	.LASF20
+ 572 01b4 12010000 		.byte	0x1
+ 573 01b8 01       		.byte	0x51
+ 574 01b9 51       		.4byte	0x1c3
+ 575 01ba C3010000 		.4byte	.LLST10
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 13
+
+
+ 576 01be CB000000 		.byte	0x0
+ 577 01c2 00       		.uleb128 0xf
+ 578 01c3 0F       		.byte	0x4
+ 579 01c4 04       		.4byte	0x93
+ 580 01c5 93000000 		.byte	0x0
+ 581 01c9 00       		.section	.debug_abbrev
+ 582              		.uleb128 0x1
+ 583 0000 01       		.uleb128 0x11
+ 584 0001 11       		.byte	0x1
+ 585 0002 01       		.uleb128 0x10
+ 586 0003 10       		.uleb128 0x6
+ 587 0004 06       		.uleb128 0x12
+ 588 0005 12       		.uleb128 0x1
+ 589 0006 01       		.uleb128 0x11
+ 590 0007 11       		.uleb128 0x1
+ 591 0008 01       		.uleb128 0x25
+ 592 0009 25       		.uleb128 0xe
+ 593 000a 0E       		.uleb128 0x13
+ 594 000b 13       		.uleb128 0xb
+ 595 000c 0B       		.uleb128 0x3
+ 596 000d 03       		.uleb128 0xe
+ 597 000e 0E       		.uleb128 0x1b
+ 598 000f 1B       		.uleb128 0xe
+ 599 0010 0E       		.byte	0x0
+ 600 0011 00       		.byte	0x0
+ 601 0012 00       		.uleb128 0x2
+ 602 0013 02       		.uleb128 0x24
+ 603 0014 24       		.byte	0x0
+ 604 0015 00       		.uleb128 0x3
+ 605 0016 03       		.uleb128 0xe
+ 606 0017 0E       		.uleb128 0xb
+ 607 0018 0B       		.uleb128 0xb
+ 608 0019 0B       		.uleb128 0x3e
+ 609 001a 3E       		.uleb128 0xb
+ 610 001b 0B       		.byte	0x0
+ 611 001c 00       		.byte	0x0
+ 612 001d 00       		.uleb128 0x3
+ 613 001e 03       		.uleb128 0x16
+ 614 001f 16       		.byte	0x0
+ 615 0020 00       		.uleb128 0x3
+ 616 0021 03       		.uleb128 0xe
+ 617 0022 0E       		.uleb128 0x3a
+ 618 0023 3A       		.uleb128 0xb
+ 619 0024 0B       		.uleb128 0x3b
+ 620 0025 3B       		.uleb128 0xb
+ 621 0026 0B       		.uleb128 0x49
+ 622 0027 49       		.uleb128 0x13
+ 623 0028 13       		.byte	0x0
+ 624 0029 00       		.byte	0x0
+ 625 002a 00       		.uleb128 0x4
+ 626 002b 04       		.uleb128 0x24
+ 627 002c 24       		.byte	0x0
+ 628 002d 00       		.uleb128 0x3
+ 629 002e 03       		.uleb128 0x8
+ 630 002f 08       		.uleb128 0xb
+ 631 0030 0B       		.uleb128 0xb
+ 632 0031 0B       		.uleb128 0x3e
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 14
+
+
+ 633 0032 3E       		.uleb128 0xb
+ 634 0033 0B       		.byte	0x0
+ 635 0034 00       		.byte	0x0
+ 636 0035 00       		.uleb128 0x5
+ 637 0036 05       		.uleb128 0x13
+ 638 0037 13       		.byte	0x1
+ 639 0038 01       		.uleb128 0x1
+ 640 0039 01       		.uleb128 0x13
+ 641 003a 13       		.uleb128 0x3
+ 642 003b 03       		.uleb128 0xe
+ 643 003c 0E       		.uleb128 0xb
+ 644 003d 0B       		.uleb128 0xb
+ 645 003e 0B       		.uleb128 0x3a
+ 646 003f 3A       		.uleb128 0xb
+ 647 0040 0B       		.uleb128 0x3b
+ 648 0041 3B       		.uleb128 0xb
+ 649 0042 0B       		.byte	0x0
+ 650 0043 00       		.byte	0x0
+ 651 0044 00       		.uleb128 0x6
+ 652 0045 06       		.uleb128 0xd
+ 653 0046 0D       		.byte	0x0
+ 654 0047 00       		.uleb128 0x3
+ 655 0048 03       		.uleb128 0xe
+ 656 0049 0E       		.uleb128 0x3a
+ 657 004a 3A       		.uleb128 0xb
+ 658 004b 0B       		.uleb128 0x3b
+ 659 004c 3B       		.uleb128 0xb
+ 660 004d 0B       		.uleb128 0x49
+ 661 004e 49       		.uleb128 0x13
+ 662 004f 13       		.uleb128 0x38
+ 663 0050 38       		.uleb128 0xa
+ 664 0051 0A       		.byte	0x0
+ 665 0052 00       		.byte	0x0
+ 666 0053 00       		.uleb128 0x7
+ 667 0054 07       		.uleb128 0x1
+ 668 0055 01       		.byte	0x1
+ 669 0056 01       		.uleb128 0x1
+ 670 0057 01       		.uleb128 0x13
+ 671 0058 13       		.uleb128 0x49
+ 672 0059 49       		.uleb128 0x13
+ 673 005a 13       		.byte	0x0
+ 674 005b 00       		.byte	0x0
+ 675 005c 00       		.uleb128 0x8
+ 676 005d 08       		.uleb128 0x21
+ 677 005e 21       		.byte	0x0
+ 678 005f 00       		.uleb128 0x49
+ 679 0060 49       		.uleb128 0x13
+ 680 0061 13       		.uleb128 0x2f
+ 681 0062 2F       		.uleb128 0xb
+ 682 0063 0B       		.byte	0x0
+ 683 0064 00       		.byte	0x0
+ 684 0065 00       		.uleb128 0x9
+ 685 0066 09       		.uleb128 0x2e
+ 686 0067 2E       		.byte	0x1
+ 687 0068 01       		.uleb128 0x1
+ 688 0069 01       		.uleb128 0x13
+ 689 006a 13       		.uleb128 0x3f
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 15
+
+
+ 690 006b 3F       		.uleb128 0xc
+ 691 006c 0C       		.uleb128 0x3
+ 692 006d 03       		.uleb128 0xe
+ 693 006e 0E       		.uleb128 0x3a
+ 694 006f 3A       		.uleb128 0xb
+ 695 0070 0B       		.uleb128 0x3b
+ 696 0071 3B       		.uleb128 0xb
+ 697 0072 0B       		.uleb128 0x27
+ 698 0073 27       		.uleb128 0xc
+ 699 0074 0C       		.uleb128 0x49
+ 700 0075 49       		.uleb128 0x13
+ 701 0076 13       		.uleb128 0x11
+ 702 0077 11       		.uleb128 0x1
+ 703 0078 01       		.uleb128 0x12
+ 704 0079 12       		.uleb128 0x1
+ 705 007a 01       		.uleb128 0x40
+ 706 007b 40       		.uleb128 0xa
+ 707 007c 0A       		.byte	0x0
+ 708 007d 00       		.byte	0x0
+ 709 007e 00       		.uleb128 0xa
+ 710 007f 0A       		.uleb128 0x5
+ 711 0080 05       		.byte	0x0
+ 712 0081 00       		.uleb128 0x3
+ 713 0082 03       		.uleb128 0x8
+ 714 0083 08       		.uleb128 0x3a
+ 715 0084 3A       		.uleb128 0xb
+ 716 0085 0B       		.uleb128 0x3b
+ 717 0086 3B       		.uleb128 0xb
+ 718 0087 0B       		.uleb128 0x49
+ 719 0088 49       		.uleb128 0x13
+ 720 0089 13       		.uleb128 0x2
+ 721 008a 02       		.uleb128 0x6
+ 722 008b 06       		.byte	0x0
+ 723 008c 00       		.byte	0x0
+ 724 008d 00       		.uleb128 0xb
+ 725 008e 0B       		.uleb128 0x34
+ 726 008f 34       		.byte	0x0
+ 727 0090 00       		.uleb128 0x3
+ 728 0091 03       		.uleb128 0x8
+ 729 0092 08       		.uleb128 0x3a
+ 730 0093 3A       		.uleb128 0xb
+ 731 0094 0B       		.uleb128 0x3b
+ 732 0095 3B       		.uleb128 0xb
+ 733 0096 0B       		.uleb128 0x49
+ 734 0097 49       		.uleb128 0x13
+ 735 0098 13       		.uleb128 0x2
+ 736 0099 02       		.uleb128 0xa
+ 737 009a 0A       		.byte	0x0
+ 738 009b 00       		.byte	0x0
+ 739 009c 00       		.uleb128 0xc
+ 740 009d 0C       		.uleb128 0x5
+ 741 009e 05       		.byte	0x0
+ 742 009f 00       		.uleb128 0x3
+ 743 00a0 03       		.uleb128 0xe
+ 744 00a1 0E       		.uleb128 0x3a
+ 745 00a2 3A       		.uleb128 0xb
+ 746 00a3 0B       		.uleb128 0x3b
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 16
+
+
+ 747 00a4 3B       		.uleb128 0xb
+ 748 00a5 0B       		.uleb128 0x49
+ 749 00a6 49       		.uleb128 0x13
+ 750 00a7 13       		.uleb128 0x2
+ 751 00a8 02       		.uleb128 0x6
+ 752 00a9 06       		.byte	0x0
+ 753 00aa 00       		.byte	0x0
+ 754 00ab 00       		.uleb128 0xd
+ 755 00ac 0D       		.uleb128 0xf
+ 756 00ad 0F       		.byte	0x0
+ 757 00ae 00       		.uleb128 0xb
+ 758 00af 0B       		.uleb128 0xb
+ 759 00b0 0B       		.byte	0x0
+ 760 00b1 00       		.byte	0x0
+ 761 00b2 00       		.uleb128 0xe
+ 762 00b3 0E       		.uleb128 0x2e
+ 763 00b4 2E       		.byte	0x1
+ 764 00b5 01       		.uleb128 0x1
+ 765 00b6 01       		.uleb128 0x13
+ 766 00b7 13       		.uleb128 0x3f
+ 767 00b8 3F       		.uleb128 0xc
+ 768 00b9 0C       		.uleb128 0x3
+ 769 00ba 03       		.uleb128 0xe
+ 770 00bb 0E       		.uleb128 0x3a
+ 771 00bc 3A       		.uleb128 0xb
+ 772 00bd 0B       		.uleb128 0x3b
+ 773 00be 3B       		.uleb128 0xb
+ 774 00bf 0B       		.uleb128 0x27
+ 775 00c0 27       		.uleb128 0xc
+ 776 00c1 0C       		.uleb128 0x11
+ 777 00c2 11       		.uleb128 0x1
+ 778 00c3 01       		.uleb128 0x12
+ 779 00c4 12       		.uleb128 0x1
+ 780 00c5 01       		.uleb128 0x40
+ 781 00c6 40       		.uleb128 0x6
+ 782 00c7 06       		.byte	0x0
+ 783 00c8 00       		.byte	0x0
+ 784 00c9 00       		.uleb128 0xf
+ 785 00ca 0F       		.uleb128 0xf
+ 786 00cb 0F       		.byte	0x0
+ 787 00cc 00       		.uleb128 0xb
+ 788 00cd 0B       		.uleb128 0xb
+ 789 00ce 0B       		.uleb128 0x49
+ 790 00cf 49       		.uleb128 0x13
+ 791 00d0 13       		.byte	0x0
+ 792 00d1 00       		.byte	0x0
+ 793 00d2 00       		.byte	0x0
+ 794 00d3 00       		.section	.debug_pubnames,"",%progbits
+ 795              		.4byte	0x59
+ 796 0000 59000000 		.2byte	0x2
+ 797 0004 0200     		.4byte	.Ldebug_info0
+ 798 0006 00000000 		.4byte	0x1ca
+ 799 000a CA010000 		.4byte	0xc5
+ 800 000e C5000000 		.ascii	"htons\000"
+ 801 0012 68746F6E 		.4byte	0xf0
+ 801      7300
+ 802 0018 F0000000 		.ascii	"htonl\000"
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 17
+
+
+ 803 001c 68746F6E 		.4byte	0x128
+ 803      6C00
+ 804 0022 28010000 		.ascii	"netChecksum\000"
+ 805 0026 6E657443 		.4byte	0x171
+ 805      6865636B 
+ 805      73756D00 
+ 806 0032 71010000 		.ascii	"netPrintIPAddr\000"
+ 807 0036 6E657450 		.4byte	0x19a
+ 807      72696E74 
+ 807      49504164 
+ 807      647200
+ 808 0045 9A010000 		.ascii	"netPrintEthAddr\000"
+ 809 0049 6E657450 		.4byte	0x0
+ 809      72696E74 
+ 809      45746841 
+ 809      64647200 
+ 810 0059 00000000 		.section	.debug_aranges,"",%progbits
+ 811              		.4byte	0x1c
+ 812 0000 1C000000 		.2byte	0x2
+ 813 0004 0200     		.4byte	.Ldebug_info0
+ 814 0006 00000000 		.byte	0x4
+ 815 000a 04       		.byte	0x0
+ 816 000b 00       		.2byte	0x0
+ 817 000c 0000     		.2byte	0x0
+ 818 000e 0000     		.4byte	.Ltext0
+ 819 0010 00000000 		.4byte	.Letext0-.Ltext0
+ 820 0014 34010000 		.4byte	0x0
+ 821 0018 00000000 		.4byte	0x0
+ 822 001c 00000000 		.section	.debug_str,"MS",%progbits,1
+ 823              	.LASF17:
+ 824              		.ascii	"netPrintIPAddr\000"
+ 825 0000 6E657450 	.LASF21:
+ 825      72696E74 
+ 825      49504164 
+ 825      647200
+ 826              		.ascii	"GNU C 4.1.1 (WinARM)\000"
+ 827 000f 474E5520 	.LASF14:
+ 827      4320342E 
+ 827      312E3120 
+ 827      2857696E 
+ 827      41524D29 
+ 828              		.ascii	"htonl\000"
+ 829 0024 68746F6E 	.LASF13:
+ 829      6C00
+ 830              		.ascii	"htons\000"
+ 831 002a 68746F6E 	.LASF3:
+ 831      7300
+ 832              		.ascii	"uint8_t\000"
+ 833 0030 75696E74 	.LASF7:
+ 833      385F7400 
+ 834              		.ascii	"uint32_t\000"
+ 835 0038 75696E74 	.LASF2:
+ 835      33325F74 
+ 835      00
+ 836              		.ascii	"short int\000"
+ 837 0041 73686F72 	.LASF15:
+ 837      7420696E 
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 18
+
+
+ 837      7400
+ 838              		.ascii	"netChecksum\000"
+ 839 004b 6E657443 	.LASF24:
+ 839      6865636B 
+ 839      73756D00 
+ 840              		.ascii	"netEthAddr\000"
+ 841 0057 6E657445 	.LASF9:
+ 841      74684164 
+ 841      647200
+ 842              		.ascii	"long long int\000"
+ 843 0062 6C6F6E67 	.LASF6:
+ 843      206C6F6E 
+ 843      6720696E 
+ 843      7400
+ 844              		.ascii	"long int\000"
+ 845 0070 6C6F6E67 	.LASF25:
+ 845      20696E74 
+ 845      00
+ 846              		.ascii	"addr\000"
+ 847 0079 61646472 	.LASF18:
+ 847      00
+ 848              		.ascii	"ipaddr\000"
+ 849 007e 69706164 	.LASF23:
+ 849      647200
+ 850              		.ascii	"C:\\Code\\ARM\\lpc2000\\EtherDrive\\etherdrive-net\000"
+ 851 0085 433A5C43 	.LASF1:
+ 851      6F64655C 
+ 851      41524D5C 
+ 851      6C706332 
+ 851      3030305C 
+ 852              		.ascii	"unsigned char\000"
+ 853 00b3 756E7369 	.LASF0:
+ 853      676E6564 
+ 853      20636861 
+ 853      7200
+ 854              		.ascii	"signed char\000"
+ 855 00c1 7369676E 	.LASF10:
+ 855      65642063 
+ 855      68617200 
+ 856              		.ascii	"long long unsigned int\000"
+ 857 00cd 6C6F6E67 	.LASF11:
+ 857      206C6F6E 
+ 857      6720756E 
+ 857      7369676E 
+ 857      65642069 
+ 858              		.ascii	"unsigned int\000"
+ 859 00e4 756E7369 	.LASF4:
+ 859      676E6564 
+ 859      20696E74 
+ 859      00
+ 860              		.ascii	"uint16_t\000"
+ 861 00f1 75696E74 	.LASF5:
+ 861      31365F74 
+ 861      00
+ 862              		.ascii	"short unsigned int\000"
+ 863 00fa 73686F72 	.LASF12:
+ 863      7420756E 
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 19
+
+
+ 863      7369676E 
+ 863      65642069 
+ 863      6E7400
+ 864              		.ascii	"char\000"
+ 865 010d 63686172 	.LASF20:
+ 865      00
+ 866              		.ascii	"ethaddr\000"
+ 867 0112 65746861 	.LASF16:
+ 867      64647200 
+ 868              		.ascii	"data\000"
+ 869 011a 64617461 	.LASF8:
+ 869      00
+ 870              		.ascii	"long unsigned int\000"
+ 871 011f 6C6F6E67 	.LASF22:
+ 871      20756E73 
+ 871      69676E65 
+ 871      6420696E 
+ 871      7400
+ 872              		.ascii	"c:\\code\\arm\\armlib/net/net.c\000"
+ 873 0131 633A5C63 	.LASF19:
+ 873      6F64655C 
+ 873      61726D5C 
+ 873      61726D6C 
+ 873      69622F6E 
+ 874              		.ascii	"netPrintEthAddr\000"
+ 875 014e 6E657450 		.ident	"GCC: (GNU) 4.1.1 (WinARM)"
+ 875      72696E74 
+ 875      45746841 
+ 875      64647200 
+ 876              	...
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s 			page 20
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 net.c
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:13     .text:00000000 htons
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:22     .text:00000000 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:36     .text:00000018 htonl
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:56     .text:0000002c netChecksum
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:119    .text:00000094 netPrintIPAddr
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:147    .text:000000cc $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:153    .text:000000d0 netPrintEthAddr
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccKabaaa.s:159    .text:000000d0 $a
+
+UNDEFINED SYMBOLS
+rprintf1RamRom
+rprintfu08
+rprintfChar

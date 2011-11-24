@@ -1,0 +1,2634 @@
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 1
+
+
+   1              		.file	"arp.c"
+   2              		.section	.debug_abbrev,"",%progbits
+   3              	.Ldebug_abbrev0:
+   4              		.section	.debug_info,"",%progbits
+   5              	.Ldebug_info0:
+   6              		.section	.debug_line,"",%progbits
+   7              	.Ldebug_line0:
+   8 0000 1D010000 		.text
+   8      02008F00 
+   8      00000201 
+   8      FB0E0D00 
+   8      01010101 
+   9              	.Ltext0:
+  10              		.align	2
+  11              		.global	arpInit
+  12              		.type	arpInit, %function
+  13              	arpInit:
+  14              	.LFB2:
+  15              		.file 1 "c:\\code\\arm\\armlib/net/arp.c"
+   1:c:\code\arm\armlib/net\arp.c **** /*! \file arp.c \brief ARP Protocol Library. */
+   2:c:\code\arm\armlib/net\arp.c **** //*****************************************************************************
+   3:c:\code\arm\armlib/net\arp.c **** //
+   4:c:\code\arm\armlib/net\arp.c **** // File Name	: 'arp.c'
+   5:c:\code\arm\armlib/net\arp.c **** // Title		: ARP Protocol Library
+   6:c:\code\arm\armlib/net\arp.c **** // Author		: Pascal Stang
+   7:c:\code\arm\armlib/net\arp.c **** // Created		: 9/7/2004
+   8:c:\code\arm\armlib/net\arp.c **** // Revised		: 7/3/2005
+   9:c:\code\arm\armlib/net\arp.c **** // Version		: 0.1
+  10:c:\code\arm\armlib/net\arp.c **** // Target MCU	: Atmel AVR series
+  11:c:\code\arm\armlib/net\arp.c **** // Editor Tabs	: 4
+  12:c:\code\arm\armlib/net\arp.c **** //
+  13:c:\code\arm\armlib/net\arp.c **** //*****************************************************************************
+  14:c:\code\arm\armlib/net\arp.c **** 
+  15:c:\code\arm\armlib/net\arp.c **** #include "global.h"
+  16:c:\code\arm\armlib/net\arp.c **** #include "net.h"
+  17:c:\code\arm\armlib/net\arp.c **** #include "nic.h"
+  18:c:\code\arm\armlib/net\arp.c **** #include "arp.h"
+  19:c:\code\arm\armlib/net\arp.c **** 
+  20:c:\code\arm\armlib/net\arp.c **** #include "rprintf.h"
+  21:c:\code\arm\armlib/net\arp.c **** 
+  22:c:\code\arm\armlib/net\arp.c **** // global variables
+  23:c:\code\arm\armlib/net\arp.c **** 
+  24:c:\code\arm\armlib/net\arp.c **** /// Single ARP table entry/record
+  25:c:\code\arm\armlib/net\arp.c **** struct ArpEntry
+  26:c:\code\arm\armlib/net\arp.c **** {
+  27:c:\code\arm\armlib/net\arp.c **** 	uint32_t ipaddr;			///< remote-note IP address
+  28:c:\code\arm\armlib/net\arp.c **** 	struct netEthAddr ethaddr;	///< remote-node ethernet (hardware/mac) address
+  29:c:\code\arm\armlib/net\arp.c **** 	uint8_t time;				///< time to live (in ARP table); this is decremented by arpTimer()
+  30:c:\code\arm\armlib/net\arp.c **** };
+  31:c:\code\arm\armlib/net\arp.c **** 
+  32:c:\code\arm\armlib/net\arp.c **** struct ArpEntry ArpMyAddr;		///< my local interface information (IP and MAC address)
+  33:c:\code\arm\armlib/net\arp.c **** struct ArpEntry ArpTable[ARP_TABLE_SIZE];	///< ARP table of matched IP<->MAC associations
+  34:c:\code\arm\armlib/net\arp.c **** 
+  35:c:\code\arm\armlib/net\arp.c **** 
+  36:c:\code\arm\armlib/net\arp.c **** void arpInit(void)
+  37:c:\code\arm\armlib/net\arp.c **** {
+  16              	 args = 0, pretend = 0, frame = 0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 2
+
+
+  17              		@ frame_needed = 0, uses_anonymous_args = 0
+  18              		@ link register save eliminated.
+  19              		@ lr needed for prologue
+  20              		.loc 1 37 0
+  21              		ldr	r3, .L7
+  22 0000 1C309FE5 		mov	r2, #0
+  23 0004 0020A0E3 		ldr	r1, .L7+4
+  24 0008 18109FE5 	.L2:
+  25              		.loc 1 42 0
+  38:c:\code\arm\armlib/net\arp.c **** 	u08 i;
+  39:c:\code\arm\armlib/net\arp.c **** 	// initialize all ArpTable elements to unused
+  40:c:\code\arm\armlib/net\arp.c **** 	for(i=0; i<ARP_TABLE_SIZE; i++)
+  41:c:\code\arm\armlib/net\arp.c **** 	{
+  42:c:\code\arm\armlib/net\arp.c **** 		ArpTable[i].ipaddr = 0;
+  26              	r3, #0]
+  27 000c 002083E5 		.loc 1 43 0
+  43:c:\code\arm\armlib/net\arp.c **** 		ArpTable[i].time = 0;
+  28              	trb	r2, [r3, #10]
+  29 0010 0A20C3E5 		add	r3, r3, #12
+  30 0014 0C3083E2 		.loc 1 40 0
+  31              		cmp	r3, r1
+  32 0018 010053E1 		bne	.L2
+  33 001c FAFFFF1A 		.loc 1 45 0
+  44:c:\code\arm\armlib/net\arp.c **** 	}
+  45:c:\code\arm\armlib/net\arp.c **** }
+  34              	
+  35 0020 1EFF2FE1 	.L8:
+  36              		.align	2
+  37              	.L7:
+  38              		.word	ArpTable
+  39 0024 00000000 		.word	ArpTable+96
+  40 0028 60000000 	.LFE2:
+  41              		.size	arpInit, .-arpInit
+  42              		.align	2
+  43              		.global	arpSetAddress
+  44              		.type	arpSetAddress, %function
+  45              	arpSetAddress:
+  46              	.LFB3:
+  47              		.loc 1 48 0
+  46:c:\code\arm\armlib/net\arp.c **** 
+  47:c:\code\arm\armlib/net\arp.c **** void arpSetAddress(struct netEthAddr* myeth, uint32_t myip)
+  48:c:\code\arm\armlib/net\arp.c **** {
+  48              	pretend = 0, frame = 0
+  49              		@ frame_needed = 0, uses_anonymous_args = 0
+  50              	.LVL0:
+  51              		stmfd	sp!, {r4, r5, lr}
+  52 002c 30402DE9 	.LCFI0:
+  53              		mov	r3, r0
+  54 0030 0030A0E1 		mov	r5, r1
+  55 0034 0150A0E1 		.loc 1 50 0
+  49:c:\code\arm\armlib/net\arp.c **** 	// set local address record
+  50:c:\code\arm\armlib/net\arp.c **** 	ArpMyAddr.ethaddr = *myeth;
+  56              	 .L11
+  57 0038 14409FE5 		add	r0, r4, #4
+  58 003c 040084E2 	.LVL1:
+  59              		mov	r1, r3
+  60 0040 0310A0E1 	.LVL2:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 3
+
+
+  61              		mov	r2, #6
+  62 0044 0620A0E3 		bl	memcpy
+  63 0048 FEFFFFEB 	.LVL3:
+  64              		.loc 1 51 0
+  51:c:\code\arm\armlib/net\arp.c **** 	ArpMyAddr.ipaddr = myip;
+  65              	[r4, #0]
+  66 004c 005084E5 		.loc 1 52 0
+  52:c:\code\arm\armlib/net\arp.c **** }
+  67              	dmfd	sp!, {r4, r5, pc}
+  68 0050 3080BDE8 	.L12:
+  69              		.align	2
+  70              	.L11:
+  71              		.word	ArpMyAddr
+  72 0054 00000000 	.LFE3:
+  73              		.size	arpSetAddress, .-arpSetAddress
+  74              		.align	2
+  75              		.global	arpTimer
+  76              		.type	arpTimer, %function
+  77              	arpTimer:
+  78              	.LFB7:
+  79              		.loc 1 157 0
+  53:c:\code\arm\armlib/net\arp.c **** 
+  54:c:\code\arm\armlib/net\arp.c **** void arpArpIn(unsigned int len, struct netEthArpHeader* packet)
+  55:c:\code\arm\armlib/net\arp.c **** {
+  56:c:\code\arm\armlib/net\arp.c **** 	#ifdef ARP_DEBUG
+  57:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("Received ARP Request\r\n");
+  58:c:\code\arm\armlib/net\arp.c **** 	arpPrintHeader( &packet->arp );
+  59:c:\code\arm\armlib/net\arp.c **** 	#endif
+  60:c:\code\arm\armlib/net\arp.c **** 
+  61:c:\code\arm\armlib/net\arp.c **** 	// for now, we just reply to requests
+  62:c:\code\arm\armlib/net\arp.c **** 	// need to add ARP cache
+  63:c:\code\arm\armlib/net\arp.c **** 	if(	(packet->arp.dipaddr == HTONL(ArpMyAddr.ipaddr)) &&
+  64:c:\code\arm\armlib/net\arp.c **** 		(packet->arp.opcode == htons(ARP_OPCODE_REQUEST)) )
+  65:c:\code\arm\armlib/net\arp.c **** 	{
+  66:c:\code\arm\armlib/net\arp.c **** 		// in ARP header
+  67:c:\code\arm\armlib/net\arp.c **** 		// copy sender's address info to dest. fields
+  68:c:\code\arm\armlib/net\arp.c **** 		packet->arp.dhwaddr = packet->arp.shwaddr;
+  69:c:\code\arm\armlib/net\arp.c **** 		packet->arp.dipaddr = packet->arp.sipaddr;
+  70:c:\code\arm\armlib/net\arp.c **** 		// fill in our information
+  71:c:\code\arm\armlib/net\arp.c **** 		packet->arp.shwaddr = ArpMyAddr.ethaddr;
+  72:c:\code\arm\armlib/net\arp.c **** 		packet->arp.sipaddr = HTONL(ArpMyAddr.ipaddr);
+  73:c:\code\arm\armlib/net\arp.c **** 		// change op to reply
+  74:c:\code\arm\armlib/net\arp.c **** 		packet->arp.opcode = htons(ARP_OPCODE_REPLY);
+  75:c:\code\arm\armlib/net\arp.c **** 		
+  76:c:\code\arm\armlib/net\arp.c **** 		// in ethernet header
+  77:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest = packet->eth.src;
+  78:c:\code\arm\armlib/net\arp.c **** 		packet->eth.src  = ArpMyAddr.ethaddr;
+  79:c:\code\arm\armlib/net\arp.c **** 
+  80:c:\code\arm\armlib/net\arp.c **** 		#ifdef ARP_DEBUG
+  81:c:\code\arm\armlib/net\arp.c **** 		rprintfProgStrM("Sending ARP Reply\r\n");
+  82:c:\code\arm\armlib/net\arp.c **** 		arpPrintHeader( &packet->arp );
+  83:c:\code\arm\armlib/net\arp.c **** 		//netPrintEthHeader((struct netEthHeader*)packet);
+  84:c:\code\arm\armlib/net\arp.c **** 		//debugPrintHexTable(len, ((unsigned char*)packet));
+  85:c:\code\arm\armlib/net\arp.c **** 		#endif
+  86:c:\code\arm\armlib/net\arp.c **** 
+  87:c:\code\arm\armlib/net\arp.c **** 		// send reply!
+  88:c:\code\arm\armlib/net\arp.c **** 		nicSend(len, (unsigned char*)packet);
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 4
+
+
+  89:c:\code\arm\armlib/net\arp.c **** 	}
+  90:c:\code\arm\armlib/net\arp.c **** }
+  91:c:\code\arm\armlib/net\arp.c **** 
+  92:c:\code\arm\armlib/net\arp.c **** void arpIpIn(struct netEthIpHeader* packet)
+  93:c:\code\arm\armlib/net\arp.c **** {
+  94:c:\code\arm\armlib/net\arp.c **** 	int8_t index;
+  95:c:\code\arm\armlib/net\arp.c **** 
+  96:c:\code\arm\armlib/net\arp.c **** 	// check if sender is already present in arp table
+  97:c:\code\arm\armlib/net\arp.c **** 	index = arpMatchIp(HTONL(packet->ip.srcipaddr));
+  98:c:\code\arm\armlib/net\arp.c **** 	if(index != -1)
+  99:c:\code\arm\armlib/net\arp.c **** 	{
+ 100:c:\code\arm\armlib/net\arp.c **** 		// sender's IP address found, update ARP entry
+ 101:c:\code\arm\armlib/net\arp.c **** 		ArpTable[index].ethaddr = packet->eth.src;
+ 102:c:\code\arm\armlib/net\arp.c **** 		// and we're done
+ 103:c:\code\arm\armlib/net\arp.c **** 		return;
+ 104:c:\code\arm\armlib/net\arp.c **** 	}
+ 105:c:\code\arm\armlib/net\arp.c **** 
+ 106:c:\code\arm\armlib/net\arp.c **** 	// sender was not present in table,
+ 107:c:\code\arm\armlib/net\arp.c **** 	// must add in empty/expired slot
+ 108:c:\code\arm\armlib/net\arp.c **** 	for(index=0; index<ARP_TABLE_SIZE; index++)
+ 109:c:\code\arm\armlib/net\arp.c **** 	{
+ 110:c:\code\arm\armlib/net\arp.c **** 		if(!ArpTable[index].time)
+ 111:c:\code\arm\armlib/net\arp.c **** 		{
+ 112:c:\code\arm\armlib/net\arp.c **** 			// write entry
+ 113:c:\code\arm\armlib/net\arp.c **** 			ArpTable[index].ethaddr = packet->eth.src;
+ 114:c:\code\arm\armlib/net\arp.c **** 			ArpTable[index].ipaddr = HTONL(packet->ip.srcipaddr);
+ 115:c:\code\arm\armlib/net\arp.c **** 			ArpTable[index].time = ARP_CACHE_TIME_TO_LIVE;
+ 116:c:\code\arm\armlib/net\arp.c **** 			// and we're done
+ 117:c:\code\arm\armlib/net\arp.c **** 			return;
+ 118:c:\code\arm\armlib/net\arp.c **** 		}
+ 119:c:\code\arm\armlib/net\arp.c **** 	}
+ 120:c:\code\arm\armlib/net\arp.c **** 
+ 121:c:\code\arm\armlib/net\arp.c **** 	// no space in table, we give up
+ 122:c:\code\arm\armlib/net\arp.c **** }
+ 123:c:\code\arm\armlib/net\arp.c **** 
+ 124:c:\code\arm\armlib/net\arp.c **** void arpIpOut(struct netEthIpHeader* packet, uint32_t phyDstIp)
+ 125:c:\code\arm\armlib/net\arp.c **** {
+ 126:c:\code\arm\armlib/net\arp.c **** 	int index;
+ 127:c:\code\arm\armlib/net\arp.c **** 	// check if destination is already present in arp table
+ 128:c:\code\arm\armlib/net\arp.c **** 	// use the physical dstIp if it's provided, otherwise the dstIp in packet
+ 129:c:\code\arm\armlib/net\arp.c **** 	if(phyDstIp)
+ 130:c:\code\arm\armlib/net\arp.c **** 		index = arpMatchIp(phyDstIp);
+ 131:c:\code\arm\armlib/net\arp.c **** 	else
+ 132:c:\code\arm\armlib/net\arp.c **** 		index = arpMatchIp(HTONL(packet->ip.destipaddr));
+ 133:c:\code\arm\armlib/net\arp.c **** 	// fill in ethernet info
+ 134:c:\code\arm\armlib/net\arp.c **** 	if(index != -1)
+ 135:c:\code\arm\armlib/net\arp.c **** 	{
+ 136:c:\code\arm\armlib/net\arp.c **** 		// ARP entry present, fill eth address(es)
+ 137:c:\code\arm\armlib/net\arp.c **** 		packet->eth.src  = ArpMyAddr.ethaddr;
+ 138:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest = ArpTable[index].ethaddr;
+ 139:c:\code\arm\armlib/net\arp.c **** 		packet->eth.type = HTONS(ETHTYPE_IP);
+ 140:c:\code\arm\armlib/net\arp.c **** 	}
+ 141:c:\code\arm\armlib/net\arp.c **** 	else
+ 142:c:\code\arm\armlib/net\arp.c **** 	{
+ 143:c:\code\arm\armlib/net\arp.c **** 		// not in table, must send ARP request
+ 144:c:\code\arm\armlib/net\arp.c **** 		packet->eth.src = ArpMyAddr.ethaddr;
+ 145:c:\code\arm\armlib/net\arp.c **** 		// MUST CHANGE, but for now, send this one broadcast
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 5
+
+
+ 146:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest.addr[0] = 0xFF;
+ 147:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest.addr[1] = 0xFF;
+ 148:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest.addr[2] = 0xFF;
+ 149:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest.addr[3] = 0xFF;
+ 150:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest.addr[4] = 0xFF;
+ 151:c:\code\arm\armlib/net\arp.c **** 		packet->eth.dest.addr[5] = 0xFF;
+ 152:c:\code\arm\armlib/net\arp.c **** 		packet->eth.type = HTONS(ETHTYPE_IP);
+ 153:c:\code\arm\armlib/net\arp.c **** 	}
+ 154:c:\code\arm\armlib/net\arp.c **** }
+ 155:c:\code\arm\armlib/net\arp.c **** 
+ 156:c:\code\arm\armlib/net\arp.c **** void arpTimer(void)
+ 157:c:\code\arm\armlib/net\arp.c **** {
+  80              	pretend = 0, frame = 0
+  81              		@ frame_needed = 0, uses_anonymous_args = 0
+  82              		@ link register save eliminated.
+  83              		@ lr needed for prologue
+  84              		.loc 1 157 0
+  85              		ldr	r2, .L21
+  86 0058 20209FE5 		ldr	r1, .L21+4
+  87 005c 20109FE5 	.L14:
+  88              		.loc 1 164 0
+ 158:c:\code\arm\armlib/net\arp.c **** 	int index;
+ 159:c:\code\arm\armlib/net\arp.c **** 	// this function meant to be called on a regular time interval
+ 160:c:\code\arm\armlib/net\arp.c **** 
+ 161:c:\code\arm\armlib/net\arp.c **** 	// decrement time-to-live for all entries
+ 162:c:\code\arm\armlib/net\arp.c **** 	for(index=0; index<ARP_TABLE_SIZE; index++)
+ 163:c:\code\arm\armlib/net\arp.c **** 	{
+ 164:c:\code\arm\armlib/net\arp.c **** 		if(ArpTable[index].time)
+  89              	 [r2, #10]	@ zero_extendqisi2
+  90 0060 0A30D2E5 		cmp	r3, #0
+  91 0064 000053E3 		.loc 1 165 0
+ 165:c:\code\arm\armlib/net\arp.c **** 			ArpTable[index].time--;
+  92              	bne	r3, r3, #1
+  93 0068 01304312 		strneb	r3, [r2, #10]
+  94 006c 0A30C215 		add	r2, r2, #12
+  95 0070 0C2082E2 		.loc 1 162 0
+  96              		cmp	r2, r1
+  97 0074 010052E1 		bne	.L14
+  98 0078 F8FFFF1A 		.loc 1 167 0
+ 166:c:\code\arm\armlib/net\arp.c **** 	}
+ 167:c:\code\arm\armlib/net\arp.c **** }
+  99              	.L22:
+ 100 007c 1EFF2FE1 		.align	2
+ 101              	.L21:
+ 102              		.word	ArpTable
+ 103              		.word	ArpTable+96
+ 104 0080 00000000 	.LFE7:
+ 105 0084 60000000 		.size	arpTimer, .-arpTimer
+ 106              		.align	2
+ 107              		.global	arpMatchIp
+ 108              		.type	arpMatchIp, %function
+ 109              	arpMatchIp:
+ 110              	.LFB8:
+ 111              		.loc 1 170 0
+ 112              		@ args = 0, pretend = 0, frame = 0
+ 168:c:\code\arm\armlib/net\arp.c **** 
+ 169:c:\code\arm\armlib/net\arp.c **** int arpMatchIp(uint32_t ipaddr)
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 6
+
+
+ 170:c:\code\arm\armlib/net\arp.c **** {
+ 113              	d = 0, uses_anonymous_args = 0
+ 114              		@ link register save eliminated.
+ 115              	.LVL4:
+ 116              		@ lr needed for prologue
+ 117              		mov	r1, r0
+ 118              		.loc 1 170 0
+ 119 0088 0010A0E1 		mov	r0, #0
+ 120              	.LVL5:
+ 121 008c 0000A0E3 		ldr	r2, .L31
+ 122              	.L24:
+ 123 0090 20209FE5 		.loc 1 176 0
+ 124              		ldr	r3, [r2, #0]
+ 171:c:\code\arm\armlib/net\arp.c **** 	uint8_t i;
+ 172:c:\code\arm\armlib/net\arp.c **** 
+ 173:c:\code\arm\armlib/net\arp.c **** 	// check if IP address is present in arp table
+ 174:c:\code\arm\armlib/net\arp.c **** 	for(i=0; i<ARP_TABLE_SIZE; i++)
+ 175:c:\code\arm\armlib/net\arp.c **** 	{
+ 176:c:\code\arm\armlib/net\arp.c **** 		if(ArpTable[i].ipaddr == ipaddr)
+ 125              		bxeq	lr
+ 126 0094 003092E5 		add	r0, r0, #1
+ 127 0098 010053E1 		add	r2, r2, #12
+ 128 009c 1EFF2F01 		.loc 1 174 0
+ 129 00a0 010080E2 		cmp	r0, #8
+ 130 00a4 0C2082E2 		bne	.L24
+ 131              		sub	r0, r0, #9
+ 132 00a8 080050E3 		.loc 1 185 0
+ 133 00ac F8FFFF1A 		bx	lr
+ 134 00b0 090040E2 	.L32:
+ 177:c:\code\arm\armlib/net\arp.c **** 		{
+ 178:c:\code\arm\armlib/net\arp.c **** 			// IP address found
+ 179:c:\code\arm\armlib/net\arp.c **** 			return i;
+ 180:c:\code\arm\armlib/net\arp.c **** 		}
+ 181:c:\code\arm\armlib/net\arp.c **** 	}
+ 182:c:\code\arm\armlib/net\arp.c **** 
+ 183:c:\code\arm\armlib/net\arp.c **** 	// no match
+ 184:c:\code\arm\armlib/net\arp.c **** 	return -1;
+ 185:c:\code\arm\armlib/net\arp.c **** }
+ 135              	.L31:
+ 136 00b4 1EFF2FE1 		.word	ArpTable
+ 137              	.LFE8:
+ 138              		.size	arpMatchIp, .-arpMatchIp
+ 139              		.align	2
+ 140 00b8 00000000 		.global	arpIpOut
+ 141              		.type	arpIpOut, %function
+ 142              	arpIpOut:
+ 143              	.LFB6:
+ 144              		.loc 1 125 0
+ 145              		@ args = 0, pretend = 0, frame = 0
+ 146              		@ frame_needed = 0, uses_anonymous_args = 0
+ 147              	.LVL6:
+ 148              		stmfd	sp!, {r4, r5, r6, lr}
+ 149              	.LCFI1:
+ 150              		mov	r5, r0
+ 151              		.loc 1 129 0
+ 152 00bc 70402DE9 		subs	r0, r1, #0
+ 153              	.LVL7:
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 7
+
+
+ 154 00c0 0050A0E1 		beq	.L34
+ 155              	.LVL8:
+ 156 00c4 000051E2 		.loc 1 130 0
+ 157              		bl	arpMatchIp
+ 158 00c8 0200000A 	.LVL9:
+ 159              		mov	r6, r0
+ 160              	.LVL10:
+ 161 00cc FEFFFFEB 		b	.L36
+ 162              	.LVL11:
+ 163 00d0 0060A0E1 	.L34:
+ 164              		.loc 1 132 0
+ 165 00d4 0E0000EA 		ldrb	r3, [r5, #30]	@ zero_extendqisi2
+ 166              		ldrb	r2, [r5, #31]	@ zero_extendqisi2
+ 167              		orr	r3, r3, r2, asl #8
+ 168              		ldrb	r2, [r5, #32]	@ zero_extendqisi2
+ 169 00d8 1E30D5E5 		orr	r3, r3, r2, asl #16
+ 170 00dc 1F20D5E5 		ldrb	r2, [r5, #33]	@ zero_extendqisi2
+ 171 00e0 023483E1 		orr	r3, r3, r2, asl #24
+ 172 00e4 2020D5E5 		and	r2, r3, #65280
+ 173 00e8 023883E1 		and	r0, r3, #16711680
+ 174 00ec 2120D5E5 	.LVL12:
+ 175 00f0 023C83E1 		mov	r0, r0, lsr #8
+ 176 00f4 FF2C03E2 		orr	r0, r0, r3, asl #24
+ 177 00f8 FF0803E2 		orr	r0, r0, r3, lsr #24
+ 178              		orr	r0, r0, r2, asl #8
+ 179 00fc 2004A0E1 		bl	arpMatchIp
+ 180 0100 030C80E1 	.LVL13:
+ 181 0104 230C80E1 		mov	r6, r0
+ 182 0108 020480E1 	.LVL14:
+ 183 010c FEFFFFEB 	.L36:
+ 184              		.loc 1 134 0
+ 185 0110 0060A0E1 		cmn	r6, #1
+ 186              		beq	.L37
+ 187              		.loc 1 137 0
+ 188              		mov	r4, #6
+ 189 0114 010076E3 		add	r0, r5, r4
+ 190 0118 1000000A 		ldr	r1, .L41
+ 191              		mov	r2, r4
+ 192 011c 0640A0E3 		bl	memcpy
+ 193 0120 040085E0 		.loc 1 138 0
+ 194 0124 74109FE5 		add	r3, r6, r6, asl #1
+ 195 0128 0420A0E1 		ldr	r1, .L41+4
+ 196 012c FEFFFFEB 		add	r1, r1, r3, asl #2
+ 197              		mov	r0, r5
+ 198 0130 863086E0 		add	r1, r1, #4
+ 199 0134 68109FE5 		mov	r2, r4
+ 200 0138 031181E0 		bl	memcpy
+ 201 013c 0500A0E1 		.loc 1 139 0
+ 202 0140 041081E2 		mov	r2, #0
+ 203 0144 0420A0E1 		orr	r3, r2, #8
+ 204 0148 FEFFFFEB 		strb	r3, [r5, #12]
+ 205              		strb	r2, [r5, #13]
+ 206 014c 0020A0E3 		ldmfd	sp!, {r4, r5, r6, pc}
+ 207 0150 083082E3 	.L37:
+ 208 0154 0C30C5E5 		.loc 1 144 0
+ 209 0158 0D20C5E5 		add	r0, r5, #6
+ 210 015c 7080BDE8 		ldr	r1, .L41
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 8
+
+
+ 211              		mov	r2, #6
+ 212              		bl	memcpy
+ 213 0160 060085E2 		.loc 1 146 0
+ 214 0164 34109FE5 		mvn	r3, #0
+ 215 0168 0620A0E3 		strb	r3, [r5, #0]
+ 216 016c FEFFFFEB 		.loc 1 147 0
+ 217              		strb	r3, [r5, #1]
+ 218 0170 0030E0E3 		.loc 1 148 0
+ 219 0174 0030C5E5 		strb	r3, [r5, #2]
+ 220              		.loc 1 149 0
+ 221 0178 0130C5E5 		strb	r3, [r5, #3]
+ 222              		.loc 1 150 0
+ 223 017c 0230C5E5 		strb	r3, [r5, #4]
+ 224              		.loc 1 151 0
+ 225 0180 0330C5E5 		strb	r3, [r5, #5]
+ 226              		.loc 1 152 0
+ 227 0184 0430C5E5 		mov	r2, #0
+ 228              		orr	r3, r2, #8
+ 229 0188 0530C5E5 		strb	r3, [r5, #12]
+ 230              		strb	r2, [r5, #13]
+ 231 018c 0020A0E3 		ldmfd	sp!, {r4, r5, r6, pc}
+ 232 0190 083082E3 	.L42:
+ 233 0194 0C30C5E5 		.align	2
+ 234 0198 0D20C5E5 	.L41:
+ 235 019c 7080BDE8 		.word	ArpMyAddr+4
+ 236              		.word	ArpTable
+ 237              	.LFE6:
+ 238              		.size	arpIpOut, .-arpIpOut
+ 239 01a0 04000000 		.align	2
+ 240 01a4 00000000 		.global	arpIpIn
+ 241              		.type	arpIpIn, %function
+ 242              	arpIpIn:
+ 243              	.LFB5:
+ 244              		.loc 1 93 0
+ 245              		@ args = 0, pretend = 0, frame = 0
+ 246              		@ frame_needed = 0, uses_anonymous_args = 0
+ 247              	.LVL15:
+ 248              		stmfd	sp!, {r4, r5, r6, r7, lr}
+ 249              	.LCFI2:
+ 250              		mov	r7, r0
+ 251              		.loc 1 97 0
+ 252 01a8 F0402DE9 		ldrb	r3, [r0, #26]	@ zero_extendqisi2
+ 253              		ldrb	r2, [r0, #27]	@ zero_extendqisi2
+ 254 01ac 0070A0E1 		orr	r3, r3, r2, asl #8
+ 255              		ldrb	r2, [r0, #28]	@ zero_extendqisi2
+ 256 01b0 1A30D0E5 		orr	r3, r3, r2, asl #16
+ 257 01b4 1B20D0E5 		ldrb	r2, [r0, #29]	@ zero_extendqisi2
+ 258 01b8 023483E1 		orr	r3, r3, r2, asl #24
+ 259 01bc 1C20D0E5 		and	r2, r3, #65280
+ 260 01c0 023883E1 		and	r0, r3, #16711680
+ 261 01c4 1D20D0E5 	.LVL16:
+ 262 01c8 023C83E1 		mov	r0, r0, lsr #8
+ 263 01cc FF2C03E2 		orr	r0, r0, r3, asl #24
+ 264 01d0 FF0803E2 		orr	r0, r0, r3, lsr #24
+ 265              		orr	r0, r0, r2, asl #8
+ 266 01d4 2004A0E1 		bl	arpMatchIp
+ 267 01d8 030C80E1 		.loc 1 98 0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 9
+
+
+ 268 01dc 230C80E1 		mov	r0, r0, asl #24
+ 269 01e0 020480E1 		mov	r0, r0, asr #24
+ 270 01e4 FEFFFFEB 		cmn	r0, #1
+ 271              		beq	.L44
+ 272 01e8 000CA0E1 		.loc 1 101 0
+ 273 01ec 400CA0E1 		add	r3, r0, r0, asl #1
+ 274 01f0 010070E3 		ldr	r0, .L53
+ 275 01f4 2000000A 		add	r0, r0, r3, asl #2
+ 276              		add	r0, r0, #4
+ 277 01f8 803080E0 		add	r1, r7, #6
+ 278 01fc A0009FE5 		mov	r2, #6
+ 279 0200 030180E0 		bl	memcpy
+ 280 0204 040080E2 		ldmfd	sp!, {r4, r5, r6, r7, pc}
+ 281 0208 061087E2 	.L51:
+ 282 020c 0620A0E3 		.loc 1 113 0
+ 283 0210 FEFFFFEB 		ldr	r6, .L53
+ 284 0214 F080BDE8 		add	r4, r1, r1, asl #1
+ 285              		mov	r4, r4, asl #2
+ 286              		add	r5, r4, r6
+ 287 0218 84609FE5 		add	r0, r5, #4
+ 288 021c 814081E0 		add	r1, r7, #6
+ 289 0220 0441A0E1 		mov	r2, #6
+ 290 0224 065084E0 		bl	memcpy
+ 291 0228 040085E2 		.loc 1 114 0
+ 292 022c 061087E2 		ldrb	r2, [r7, #26]	@ zero_extendqisi2
+ 293 0230 0620A0E3 		ldrb	r3, [r7, #27]	@ zero_extendqisi2
+ 294 0234 FEFFFFEB 		orr	r2, r2, r3, asl #8
+ 295              		ldrb	r3, [r7, #28]	@ zero_extendqisi2
+ 296 0238 1A20D7E5 		orr	r2, r2, r3, asl #16
+ 297 023c 1B30D7E5 		ldrb	r3, [r7, #29]	@ zero_extendqisi2
+ 298 0240 032482E1 		orr	r2, r2, r3, asl #24
+ 299 0244 1C30D7E5 		and	r1, r2, #65280
+ 300 0248 032882E1 		and	r3, r2, #16711680
+ 301 024c 1D30D7E5 		mov	r3, r3, lsr #8
+ 302 0250 032C82E1 		orr	r3, r3, r2, asl #24
+ 303 0254 FF1C02E2 		orr	r3, r3, r2, lsr #24
+ 304 0258 FF3802E2 		orr	r3, r3, r1, asl #8
+ 305 025c 2334A0E1 		str	r3, [r4, r6]
+ 306 0260 023C83E1 		.loc 1 115 0
+ 307 0264 223C83E1 		mov	r3, #100
+ 308 0268 013483E1 		strb	r3, [r5, #10]
+ 309 026c 063084E7 		ldmfd	sp!, {r4, r5, r6, r7, pc}
+ 310              	.L44:
+ 311 0270 6430A0E3 		.loc 1 103 0
+ 312 0274 0A30C5E5 		ldr	r2, .L53
+ 313 0278 F080BDE8 		mov	r1, #0
+ 314              	.L47:
+ 315              		.loc 1 110 0
+ 316 027c 20209FE5 		ldrb	r3, [r2, #10]	@ zero_extendqisi2
+ 317 0280 0010A0E3 		cmp	r3, #0
+ 318              		beq	.L51
+ 319              		.loc 1 117 0
+ 320 0284 0A30D2E5 		add	r1, r1, #1
+ 321 0288 000053E3 		add	r2, r2, #12
+ 322 028c E1FFFF0A 		.loc 1 108 0
+ 323              		cmp	r1, #8
+ 324 0290 011081E2 		bne	.L47
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 10
+
+
+ 325 0294 0C2082E2 		ldmfd	sp!, {r4, r5, r6, r7, pc}
+ 326              	.L54:
+ 327 0298 080051E3 		.align	2
+ 328 029c F8FFFF1A 	.L53:
+ 329 02a0 F080BDE8 		.word	ArpTable
+ 330              	.LFE5:
+ 331              		.size	arpIpIn, .-arpIpIn
+ 332              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 333 02a4 00000000 		.align	2
+ 334              	.LC0:
+ 335              		.ascii	"Time    Eth Address    IP Address\015\012\000"
+ 336              		.align	2
+ 337              	.LC1:
+ 338              		.ascii	"---------------------------------------\015\012\000"
+ 339 0000 54696D65 		.align	2
+ 339      20202020 
+ 339      45746820 
+ 339      41646472 
+ 339      65737320 
+ 340              	.LC2:
+ 341              		.ascii	"   \000"
+ 342 0024 2D2D2D2D 		.align	2
+ 342      2D2D2D2D 
+ 342      2D2D2D2D 
+ 342      2D2D2D2D 
+ 342      2D2D2D2D 
+ 343 004e 0000     	.LC3:
+ 344              		.ascii	"  \000"
+ 345 0050 20202000 		.text
+ 346              		.align	2
+ 347              		.global	arpPrintTable
+ 348 0054 202000   		.type	arpPrintTable, %function
+ 349              	arpPrintTable:
+ 350              	.LFB10:
+ 351              		.loc 1 213 0
+ 352              		@ args = 0, pretend = 0, frame = 0
+ 353              		@ frame_needed = 0, uses_anonymous_args = 0
+ 354              		stmfd	sp!, {r4, r5, lr}
+ 186:c:\code\arm\armlib/net\arp.c **** 
+ 187:c:\code\arm\armlib/net\arp.c **** #ifdef ARP_DEBUG_PRINT
+ 188:c:\code\arm\armlib/net\arp.c **** void arpPrintHeader(struct netArpHeader* packet)
+ 189:c:\code\arm\armlib/net\arp.c **** {
+ 190:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("ARP Packet:\r\n");
+ 191:c:\code\arm\armlib/net\arp.c **** 	//debugPrintHexTable(60, ((unsigned char*)&packet)-14);
+ 192:c:\code\arm\armlib/net\arp.c **** 	// print operation type
+ 193:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("Operation   : ");
+ 194:c:\code\arm\armlib/net\arp.c **** 	if(packet->opcode == htons(ARP_OPCODE_REQUEST))
+ 195:c:\code\arm\armlib/net\arp.c **** 		rprintfProgStrM("REQUEST");
+ 196:c:\code\arm\armlib/net\arp.c **** 	else if(packet->opcode == htons(ARP_OPCODE_REPLY))
+ 197:c:\code\arm\armlib/net\arp.c **** 		rprintfProgStrM("REPLY");
+ 198:c:\code\arm\armlib/net\arp.c **** 	else
+ 199:c:\code\arm\armlib/net\arp.c **** 		rprintfProgStrM("UNKNOWN");
+ 200:c:\code\arm\armlib/net\arp.c **** 	rprintfCRLF();
+ 201:c:\code\arm\armlib/net\arp.c **** 	// print source hardware address
+ 202:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("SrcHwAddr   : ");	netPrintEthAddr(&packet->shwaddr);	rprintfCRLF();
+ 203:c:\code\arm\armlib/net\arp.c **** 	// print source protocol address
+ 204:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("SrcProtoAddr: ");	netPrintIPAddr(HTONL(packet->sipaddr));	rprintfCRLF();
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 11
+
+
+ 205:c:\code\arm\armlib/net\arp.c **** 	// print target hardware address
+ 206:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("DstHwAddr   : ");	netPrintEthAddr(&packet->dhwaddr);	rprintfCRLF();
+ 207:c:\code\arm\armlib/net\arp.c **** 	// print target protocol address
+ 208:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("DstProtoAddr: ");	netPrintIPAddr(HTONL(packet->dipaddr));	rprintfCRLF();
+ 209:c:\code\arm\armlib/net\arp.c **** }
+ 210:c:\code\arm\armlib/net\arp.c **** 
+ 211:c:\code\arm\armlib/net\arp.c **** 
+ 212:c:\code\arm\armlib/net\arp.c **** void arpPrintTable(void)
+ 213:c:\code\arm\armlib/net\arp.c **** {
+ 355              	.L61+12
+ 356              		bl	rprintfStr
+ 357              		.loc 1 223 0
+ 358 02a8 30402DE9 		add	r3, r4, r4, asl #1
+ 359              		ldr	r0, .L61+16
+ 214:c:\code\arm\armlib/net\arp.c **** 	uint8_t i;
+ 215:c:\code\arm\armlib/net\arp.c **** 
+ 216:c:\code\arm\armlib/net\arp.c **** 	// print ARP table
+ 217:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("Time    Eth Address    IP Address\r\n");
+ 360              	r0, r0, r3, asl #2
+ 361 02ac 58009FE5 		bl	netPrintEthAddr
+ 362 02b0 FEFFFFEB 		.loc 1 224 0
+ 218:c:\code\arm\armlib/net\arp.c **** 	rprintfProgStrM("---------------------------------------\r\n");
+ 363              	r	r0, .L61+20
+ 364 02b4 54009FE5 		bl	rprintfStr
+ 365 02b8 FEFFFFEB 		.loc 1 225 0
+ 366 02bc 0040A0E3 		ldr	r0, [r5, #-10]
+ 367 02c0 4C509FE5 		bl	netPrintIPAddr
+ 368              		.loc 1 226 0
+ 219:c:\code\arm\armlib/net\arp.c **** 	for(i=0; i<ARP_TABLE_SIZE; i++)
+ 220:c:\code\arm\armlib/net\arp.c **** 	{
+ 221:c:\code\arm\armlib/net\arp.c **** 		rprintfu08(ArpTable[i].time);
+ 369              	rintfCRLF
+ 370 02c4 0000D5E5 		add	r4, r4, #1
+ 371 02c8 FEFFFFEB 		add	r5, r5, #12
+ 222:c:\code\arm\armlib/net\arp.c **** 		rprintfProgStrM("   ");
+ 372              	oc 1 219 0
+ 373 02cc 44009FE5 		cmp	r4, #8
+ 374 02d0 FEFFFFEB 		bne	.L56
+ 223:c:\code\arm\armlib/net\arp.c **** 		netPrintEthAddr(&ArpTable[i].ethaddr);
+ 375              	oc 1 228 0
+ 376 02d4 843084E0 		ldmfd	sp!, {r4, r5, pc}
+ 377 02d8 3C009FE5 	.L62:
+ 378 02dc 030180E0 		.align	2
+ 379 02e0 FEFFFFEB 	.L61:
+ 224:c:\code\arm\armlib/net\arp.c **** 		rprintfProgStrM("  ");
+ 380              	d	.LC0
+ 381 02e4 34009FE5 		.word	.LC1
+ 382 02e8 FEFFFFEB 		.word	ArpTable+10
+ 225:c:\code\arm\armlib/net\arp.c **** 		netPrintIPAddr(ArpTable[i].ipaddr);
+ 383              	ord	.LC2
+ 384 02ec 0A0015E5 		.word	ArpTable+4
+ 385 02f0 FEFFFFEB 		.word	.LC3
+ 226:c:\code\arm\armlib/net\arp.c **** 		rprintfCRLF();
+ 386              	E10:
+ 387 02f4 FEFFFFEB 		.size	arpPrintTable, .-arpPrintTable
+ 388 02f8 014084E2 		.section	.rodata.str1.4
+ 389 02fc 0C5085E2 		.align	2
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 12
+
+
+ 390              	.LC4:
+ 391 0300 080054E3 		.ascii	"ARP Packet:\015\012\000"
+ 392 0304 EEFFFF1A 		.align	2
+ 227:c:\code\arm\armlib/net\arp.c **** 	}
+ 228:c:\code\arm\armlib/net\arp.c **** }
+ 393              	.ascii	"Operation   : \000"
+ 394 0308 3080BDE8 		.align	2
+ 395              	.LC6:
+ 396              		.ascii	"REQUEST\000"
+ 397              		.align	2
+ 398 030c 00000000 	.LC7:
+ 399 0310 24000000 		.ascii	"REPLY\000"
+ 400 0314 0A000000 		.align	2
+ 401 0318 50000000 	.LC8:
+ 402 031c 04000000 		.ascii	"UNKNOWN\000"
+ 403 0320 54000000 		.align	2
+ 404              	.LC9:
+ 405              		.ascii	"SrcHwAddr   : \000"
+ 406              		.align	2
+ 407 0057 00       	.LC10:
+ 408              		.ascii	"SrcProtoAddr: \000"
+ 409 0058 41525020 		.align	2
+ 409      5061636B 
+ 409      65743A0D 
+ 409      0A00
+ 410 0066 0000     	.LC11:
+ 411              		.ascii	"DstHwAddr   : \000"
+ 412 0068 4F706572 		.align	2
+ 412      6174696F 
+ 412      6E202020 
+ 412      3A2000
+ 413 0077 00       	.LC12:
+ 414              		.ascii	"DstProtoAddr: \000"
+ 415 0078 52455155 		.text
+ 415      45535400 
+ 416              		.align	2
+ 417              		.global	arpPrintHeader
+ 418 0080 5245504C 		.type	arpPrintHeader, %function
+ 418      5900
+ 419 0086 0000     	arpPrintHeader:
+ 420              	.LFB9:
+ 421 0088 554E4B4E 		.loc 1 189 0
+ 421      4F574E00 
+ 422              		@ args = 0, pretend = 0, frame = 0
+ 423              		@ frame_needed = 0, uses_anonymous_args = 0
+ 424 0090 53726348 	.LVL17:
+ 424      77416464 
+ 424      72202020 
+ 424      3A2000
+ 425 009f 00       		stmfd	sp!, {r4, r5, lr}
+ 426              	.LCFI4:
+ 427 00a0 53726350 		mov	r5, r0
+ 427      726F746F 
+ 427      41646472 
+ 427      3A2000
+ 428 00af 00       		.loc 1 190 0
+ 429              		ldr	r0, .L70
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 13
+
+
+ 430 00b0 44737448 	.LVL18:
+ 430      77416464 
+ 430      72202020 
+ 430      3A2000
+ 431 00bf 00       		bl	rprintfStr
+ 432              		.loc 1 193 0
+ 433 00c0 44737450 		ldr	r0, .L70+4
+ 433      726F746F 
+ 433      41646472 
+ 433      3A2000
+ 434 00cf 00       		bl	rprintfStr
+ 435              		.loc 1 194 0
+ 436              		ldrb	r4, [r5, #6]	@ zero_extendqisi2
+ 437              		ldrb	r3, [r5, #7]	@ zero_extendqisi2
+ 438              		orr	r4, r4, r3, asl #8
+ 439              		mov	r0, #1
+ 440              		bl	htons
+ 441              		cmp	r4, r0
+ 442              		bne	.L64
+ 443              		.loc 1 195 0
+ 444 0324 30402DE9 		ldr	r0, .L70+8
+ 445              		bl	rprintfStr
+ 446 0328 0050A0E1 		b	.L66
+ 447              	.L64:
+ 448 032c 18019FE5 		.loc 1 196 0
+ 449              		ldrb	r4, [r5, #6]	@ zero_extendqisi2
+ 450 0330 FEFFFFEB 		ldrb	r3, [r5, #7]	@ zero_extendqisi2
+ 451              		orr	r4, r4, r3, asl #8
+ 452 0334 14019FE5 		mov	r0, #2
+ 453 0338 FEFFFFEB 		bl	htons
+ 454              		cmp	r4, r0
+ 455 033c 0640D5E5 		bne	.L67
+ 456 0340 0730D5E5 		.loc 1 197 0
+ 457 0344 034484E1 		ldr	r0, .L70+12
+ 458 0348 0100A0E3 		bl	rprintfStr
+ 459 034c FEFFFFEB 		b	.L66
+ 460 0350 000054E1 	.L67:
+ 461 0354 0200001A 		.loc 1 199 0
+ 462              		ldr	r0, .L70+16
+ 463 0358 F4009FE5 		bl	rprintfStr
+ 464 035c FEFFFFEB 	.L66:
+ 465 0360 0B0000EA 		.loc 1 200 0
+ 466              		bl	rprintfCRLF
+ 467              		.loc 1 202 0
+ 468 0364 0640D5E5 		ldr	r0, .L70+20
+ 469 0368 0730D5E5 		bl	rprintfStr
+ 470 036c 034484E1 		add	r0, r5, #8
+ 471 0370 0200A0E3 		bl	netPrintEthAddr
+ 472 0374 FEFFFFEB 		bl	rprintfCRLF
+ 473 0378 000054E1 		.loc 1 204 0
+ 474 037c 0200001A 		ldr	r0, .L70+24
+ 475              		bl	rprintfStr
+ 476 0380 D0009FE5 		ldrb	r3, [r5, #14]	@ zero_extendqisi2
+ 477 0384 FEFFFFEB 		ldrb	r2, [r5, #15]	@ zero_extendqisi2
+ 478 0388 010000EA 		orr	r3, r3, r2, asl #8
+ 479              		ldrb	r2, [r5, #16]	@ zero_extendqisi2
+ 480              		orr	r3, r3, r2, asl #16
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 14
+
+
+ 481 038c C8009FE5 		ldrb	r2, [r5, #17]	@ zero_extendqisi2
+ 482 0390 FEFFFFEB 		orr	r3, r3, r2, asl #24
+ 483              		and	r2, r3, #65280
+ 484              		and	r0, r3, #16711680
+ 485 0394 FEFFFFEB 		mov	r0, r0, lsr #8
+ 486              		orr	r0, r0, r3, asl #24
+ 487 0398 C0009FE5 		orr	r0, r0, r3, lsr #24
+ 488 039c FEFFFFEB 		orr	r0, r0, r2, asl #8
+ 489 03a0 080085E2 		bl	netPrintIPAddr
+ 490 03a4 FEFFFFEB 		bl	rprintfCRLF
+ 491 03a8 FEFFFFEB 		.loc 1 206 0
+ 492              		ldr	r0, .L70+28
+ 493 03ac B0009FE5 		bl	rprintfStr
+ 494 03b0 FEFFFFEB 		add	r0, r5, #18
+ 495 03b4 0E30D5E5 		bl	netPrintEthAddr
+ 496 03b8 0F20D5E5 		bl	rprintfCRLF
+ 497 03bc 023483E1 		.loc 1 208 0
+ 498 03c0 1020D5E5 		ldr	r0, .L70+32
+ 499 03c4 023883E1 		bl	rprintfStr
+ 500 03c8 1120D5E5 		ldrb	r3, [r5, #24]	@ zero_extendqisi2
+ 501 03cc 023C83E1 		ldrb	r2, [r5, #25]	@ zero_extendqisi2
+ 502 03d0 FF2C03E2 		orr	r3, r3, r2, asl #8
+ 503 03d4 FF0803E2 		ldrb	r2, [r5, #26]	@ zero_extendqisi2
+ 504 03d8 2004A0E1 		orr	r3, r3, r2, asl #16
+ 505 03dc 030C80E1 		ldrb	r2, [r5, #27]	@ zero_extendqisi2
+ 506 03e0 230C80E1 		orr	r3, r3, r2, asl #24
+ 507 03e4 020480E1 		and	r2, r3, #65280
+ 508 03e8 FEFFFFEB 		and	r0, r3, #16711680
+ 509 03ec FEFFFFEB 		mov	r0, r0, lsr #8
+ 510              		orr	r0, r0, r3, asl #24
+ 511 03f0 70009FE5 		orr	r0, r0, r3, lsr #24
+ 512 03f4 FEFFFFEB 		orr	r0, r0, r2, asl #8
+ 513 03f8 120085E2 		bl	netPrintIPAddr
+ 514 03fc FEFFFFEB 		bl	rprintfCRLF
+ 515 0400 FEFFFFEB 		.loc 1 209 0
+ 516              		ldmfd	sp!, {r4, r5, pc}
+ 517 0404 60009FE5 	.L71:
+ 518 0408 FEFFFFEB 		.align	2
+ 519 040c 1830D5E5 	.L70:
+ 520 0410 1920D5E5 		.word	.LC4
+ 521 0414 023483E1 		.word	.LC5
+ 522 0418 1A20D5E5 		.word	.LC6
+ 523 041c 023883E1 		.word	.LC7
+ 524 0420 1B20D5E5 		.word	.LC8
+ 525 0424 023C83E1 		.word	.LC9
+ 526 0428 FF2C03E2 		.word	.LC10
+ 527 042c FF0803E2 		.word	.LC11
+ 528 0430 2004A0E1 		.word	.LC12
+ 529 0434 030C80E1 	.LFE9:
+ 530 0438 230C80E1 		.size	arpPrintHeader, .-arpPrintHeader
+ 531 043c 020480E1 		.align	2
+ 532 0440 FEFFFFEB 		.global	arpArpIn
+ 533 0444 FEFFFFEB 		.type	arpArpIn, %function
+ 534              	arpArpIn:
+ 535 0448 3080BDE8 	.LFB4:
+ 536              		.loc 1 55 0
+ 537              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 15
+
+
+ 538              		@ frame_needed = 0, uses_anonymous_args = 0
+ 539 044c 58000000 	.LVL19:
+ 540 0450 68000000 		stmfd	sp!, {r4, r5, r6, r7, r8, sl, lr}
+ 541 0454 78000000 	.LCFI5:
+ 542 0458 80000000 		mov	sl, r0
+ 543 045c 88000000 		mov	r7, r1
+ 544 0460 90000000 		.loc 1 63 0
+ 545 0464 A0000000 		ldr	r8, .L77
+ 546 0468 B0000000 		ldr	r1, [r8, #0]
+ 547 046c C0000000 	.LVL20:
+ 548              		ldrb	r2, [r7, #38]	@ zero_extendqisi2
+ 549              		ldrb	r3, [r7, #39]	@ zero_extendqisi2
+ 550              		orr	r2, r2, r3, asl #8
+ 551              		ldrb	r3, [r7, #40]	@ zero_extendqisi2
+ 552              		orr	r2, r2, r3, asl #16
+ 553              		ldrb	r3, [r7, #41]	@ zero_extendqisi2
+ 554              		orr	r2, r2, r3, asl #24
+ 555              		and	r0, r1, #65280
+ 556              	.LVL21:
+ 557              		and	r3, r1, #16711680
+ 558              		mov	r3, r3, lsr #8
+ 559 0470 F0452DE9 		orr	r3, r3, r1, asl #24
+ 560              		orr	r3, r3, r1, lsr #24
+ 561 0474 00A0A0E1 		orr	r3, r3, r0, asl #8
+ 562 0478 0170A0E1 		cmp	r2, r3
+ 563              		ldmnefd	sp!, {r4, r5, r6, r7, r8, sl, pc}
+ 564 047c 3C819FE5 		ldrb	r4, [r7, #20]	@ zero_extendqisi2
+ 565 0480 001098E5 		ldrb	r3, [r7, #21]	@ zero_extendqisi2
+ 566              		orr	r4, r4, r3, asl #8
+ 567 0484 2620D7E5 		mov	r0, #1
+ 568 0488 2730D7E5 		bl	htons
+ 569 048c 032482E1 		cmp	r4, r0
+ 570 0490 2830D7E5 		ldmnefd	sp!, {r4, r5, r6, r7, r8, sl, pc}
+ 571 0494 032882E1 		.loc 1 68 0
+ 572 0498 2930D7E5 		add	r4, r7, #22
+ 573 049c 032C82E1 		mov	r5, #6
+ 574 04a0 FF0C01E2 		add	r0, r7, #32
+ 575              		mov	r1, r4
+ 576 04a4 FF3801E2 		mov	r2, r5
+ 577 04a8 2334A0E1 		bl	memcpy
+ 578 04ac 013C83E1 		.loc 1 69 0
+ 579 04b0 213C83E1 		ldrb	r3, [r7, #28]	@ zero_extendqisi2
+ 580 04b4 003483E1 		ldrb	r2, [r7, #29]	@ zero_extendqisi2
+ 581 04b8 030052E1 		orr	r3, r3, r2, asl #8
+ 582 04bc F085BD18 		ldrb	r2, [r7, #30]	@ zero_extendqisi2
+ 583 04c0 1440D7E5 		orr	r3, r3, r2, asl #16
+ 584 04c4 1530D7E5 		ldrb	r2, [r7, #31]	@ zero_extendqisi2
+ 585 04c8 034484E1 		orr	r3, r3, r2, asl #24
+ 586 04cc 0100A0E3 		strb	r3, [r7, #38]
+ 587 04d0 FEFFFFEB 		mov	r2, r3, lsr #8
+ 588 04d4 000054E1 		strb	r2, [r7, #39]
+ 589 04d8 F085BD18 		mov	r2, r3, lsr #16
+ 590              		strb	r2, [r7, #40]
+ 591 04dc 164087E2 		mov	r3, r3, lsr #24
+ 592 04e0 0650A0E3 		strb	r3, [r7, #41]
+ 593 04e4 200087E2 		.loc 1 71 0
+ 594 04e8 0410A0E1 		add	r6, r8, #4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 16
+
+
+ 595 04ec 0520A0E1 		mov	r0, r4
+ 596 04f0 FEFFFFEB 		mov	r1, r6
+ 597              		mov	r2, r5
+ 598 04f4 1C30D7E5 		bl	memcpy
+ 599 04f8 1D20D7E5 		.loc 1 72 0
+ 600 04fc 023483E1 		ldr	r2, [r8, #0]
+ 601 0500 1E20D7E5 		and	r1, r2, #65280
+ 602 0504 023883E1 		and	r3, r2, #16711680
+ 603 0508 1F20D7E5 		mov	r3, r3, lsr #8
+ 604 050c 023C83E1 		orr	r3, r3, r2, asl #24
+ 605 0510 2630C7E5 		orr	r3, r3, r2, lsr #24
+ 606 0514 2324A0E1 		orr	r3, r3, r1, asl #8
+ 607 0518 2720C7E5 		strb	r3, [r7, #28]
+ 608 051c 2328A0E1 		mov	r2, r3, lsr #8
+ 609 0520 2820C7E5 		strb	r2, [r7, #29]
+ 610 0524 233CA0E1 		mov	r2, r3, lsr #16
+ 611 0528 2930C7E5 		strb	r2, [r7, #30]
+ 612              		mov	r3, r3, lsr #24
+ 613 052c 046088E2 		strb	r3, [r7, #31]
+ 614 0530 0400A0E1 		.loc 1 74 0
+ 615 0534 0610A0E1 		mov	r0, #2
+ 616 0538 0520A0E1 		bl	htons
+ 617 053c FEFFFFEB 		strb	r0, [r7, #20]
+ 618              		mov	r0, r0, lsr #8
+ 619 0540 002098E5 		strb	r0, [r7, #21]
+ 620 0544 FF1C02E2 		.loc 1 77 0
+ 621 0548 FF3802E2 		add	r4, r7, r5
+ 622 054c 2334A0E1 		mov	r0, r7
+ 623 0550 023C83E1 		mov	r1, r4
+ 624 0554 223C83E1 		mov	r2, r5
+ 625 0558 013483E1 		bl	memcpy
+ 626 055c 1C30C7E5 		.loc 1 78 0
+ 627 0560 2324A0E1 		mov	r0, r4
+ 628 0564 1D20C7E5 		mov	r1, r6
+ 629 0568 2328A0E1 		mov	r2, r5
+ 630 056c 1E20C7E5 		bl	memcpy
+ 631 0570 233CA0E1 		.loc 1 88 0
+ 632 0574 1F30C7E5 		mov	r0, sl
+ 633              		mov	r1, r7
+ 634 0578 0200A0E3 		bl	nicSend
+ 635 057c FEFFFFEB 		ldmfd	sp!, {r4, r5, r6, r7, r8, sl, pc}
+ 636 0580 1400C7E5 	.L78:
+ 637 0584 2004A0E1 		.align	2
+ 638 0588 1500C7E5 	.L77:
+ 639              		.word	ArpMyAddr
+ 640 058c 054087E0 	.LFE4:
+ 641 0590 0700A0E1 		.size	arpArpIn, .-arpArpIn
+ 642 0594 0410A0E1 		.comm	ArpMyAddr,12,4
+ 643 0598 0520A0E1 		.comm	ArpTable,96,4
+ 644 059c FEFFFFEB 		.section	.debug_frame,"",%progbits
+ 645              	.Lframe0:
+ 646 05a0 0400A0E1 		.4byte	.LECIE0-.LSCIE0
+ 647 05a4 0610A0E1 	.LSCIE0:
+ 648 05a8 0520A0E1 		.4byte	0xffffffff
+ 649 05ac FEFFFFEB 		.byte	0x1
+ 650              		.ascii	"\000"
+ 651 05b0 0A00A0E1 		.uleb128 0x1
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 17
+
+
+ 652 05b4 0710A0E1 		.sleb128 -4
+ 653 05b8 FEFFFFEB 		.byte	0xe
+ 654 05bc F085BDE8 		.byte	0xc
+ 655              		.uleb128 0xd
+ 656              		.uleb128 0x0
+ 657              		.align	2
+ 658 05c0 00000000 	.LECIE0:
+ 659              	.LSFDE0:
+ 660              		.4byte	.LEFDE0-.LASFDE0
+ 661              	.LASFDE0:
+ 662              		.4byte	.Lframe0
+ 663              		.4byte	.LFB2
+ 664              		.4byte	.LFE2-.LFB2
+ 665 0000 0C000000 		.align	2
+ 666              	.LEFDE0:
+ 667 0004 FFFFFFFF 	.LSFDE2:
+ 668 0008 01       		.4byte	.LEFDE2-.LASFDE2
+ 669 0009 00       	.LASFDE2:
+ 670 000a 01       		.4byte	.Lframe0
+ 671 000b 7C       		.4byte	.LFB3
+ 672 000c 0E       		.4byte	.LFE3-.LFB3
+ 673 000d 0C       		.byte	0x4
+ 674 000e 0D       		.4byte	.LCFI0-.LFB3
+ 675 000f 00       		.byte	0xe
+ 676              		.uleb128 0xc
+ 677              		.byte	0x8e
+ 678              		.uleb128 0x1
+ 679 0010 0C000000 		.byte	0x85
+ 680              		.uleb128 0x2
+ 681 0014 00000000 		.byte	0x84
+ 682 0018 00000000 		.uleb128 0x3
+ 683 001c 2C000000 		.align	2
+ 684              	.LEFDE2:
+ 685              	.LSFDE4:
+ 686              		.4byte	.LEFDE4-.LASFDE4
+ 687 0020 18000000 	.LASFDE4:
+ 688              		.4byte	.Lframe0
+ 689 0024 00000000 		.4byte	.LFB7
+ 690 0028 2C000000 		.4byte	.LFE7-.LFB7
+ 691 002c 2C000000 		.align	2
+ 692 0030 44       	.LEFDE4:
+ 693              	.LSFDE6:
+ 694 0031 0E       		.4byte	.LEFDE6-.LASFDE6
+ 695 0032 0C       	.LASFDE6:
+ 696 0033 8E       		.4byte	.Lframe0
+ 697 0034 01       		.4byte	.LFB8
+ 698 0035 85       		.4byte	.LFE8-.LFB8
+ 699 0036 02       		.align	2
+ 700 0037 84       	.LEFDE6:
+ 701 0038 03       	.LSFDE8:
+ 702 0039 000000   		.4byte	.LEFDE8-.LASFDE8
+ 703              	.LASFDE8:
+ 704              		.4byte	.Lframe0
+ 705 003c 0C000000 		.4byte	.LFB6
+ 706              		.4byte	.LFE6-.LFB6
+ 707 0040 00000000 		.byte	0x4
+ 708 0044 58000000 		.4byte	.LCFI1-.LFB6
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 18
+
+
+ 709 0048 30000000 		.byte	0xe
+ 710              		.uleb128 0x10
+ 711              		.byte	0x8e
+ 712              		.uleb128 0x1
+ 713 004c 0C000000 		.byte	0x86
+ 714              		.uleb128 0x2
+ 715 0050 00000000 		.byte	0x85
+ 716 0054 88000000 		.uleb128 0x3
+ 717 0058 34000000 		.byte	0x84
+ 718              		.uleb128 0x4
+ 719              		.align	2
+ 720              	.LEFDE8:
+ 721 005c 18000000 	.LSFDE10:
+ 722              		.4byte	.LEFDE10-.LASFDE10
+ 723 0060 00000000 	.LASFDE10:
+ 724 0064 BC000000 		.4byte	.Lframe0
+ 725 0068 EC000000 		.4byte	.LFB5
+ 726 006c 44       		.4byte	.LFE5-.LFB5
+ 727              		.byte	0x4
+ 728 006d 0E       		.4byte	.LCFI2-.LFB5
+ 729 006e 10       		.byte	0xe
+ 730 006f 8E       		.uleb128 0x14
+ 731 0070 01       		.byte	0x8e
+ 732 0071 86       		.uleb128 0x1
+ 733 0072 02       		.byte	0x87
+ 734 0073 85       		.uleb128 0x2
+ 735 0074 03       		.byte	0x86
+ 736 0075 84       		.uleb128 0x3
+ 737 0076 04       		.byte	0x85
+ 738 0077 00       		.uleb128 0x4
+ 739              		.byte	0x84
+ 740              		.uleb128 0x5
+ 741 0078 1C000000 		.align	2
+ 742              	.LEFDE10:
+ 743 007c 00000000 	.LSFDE12:
+ 744 0080 A8010000 		.4byte	.LEFDE12-.LASFDE12
+ 745 0084 00010000 	.LASFDE12:
+ 746 0088 44       		.4byte	.Lframe0
+ 747              		.4byte	.LFB10
+ 748 0089 0E       		.4byte	.LFE10-.LFB10
+ 749 008a 14       		.byte	0x4
+ 750 008b 8E       		.4byte	.LCFI3-.LFB10
+ 751 008c 01       		.byte	0xe
+ 752 008d 87       		.uleb128 0xc
+ 753 008e 02       		.byte	0x8e
+ 754 008f 86       		.uleb128 0x1
+ 755 0090 03       		.byte	0x85
+ 756 0091 85       		.uleb128 0x2
+ 757 0092 04       		.byte	0x84
+ 758 0093 84       		.uleb128 0x3
+ 759 0094 05       		.align	2
+ 760 0095 000000   	.LEFDE12:
+ 761              	.LSFDE14:
+ 762              		.4byte	.LEFDE14-.LASFDE14
+ 763 0098 18000000 	.LASFDE14:
+ 764              		.4byte	.Lframe0
+ 765 009c 00000000 		.4byte	.LFB9
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 19
+
+
+ 766 00a0 A8020000 		.4byte	.LFE9-.LFB9
+ 767 00a4 7C000000 		.byte	0x4
+ 768 00a8 44       		.4byte	.LCFI4-.LFB9
+ 769              		.byte	0xe
+ 770 00a9 0E       		.uleb128 0xc
+ 771 00aa 0C       		.byte	0x8e
+ 772 00ab 8E       		.uleb128 0x1
+ 773 00ac 01       		.byte	0x85
+ 774 00ad 85       		.uleb128 0x2
+ 775 00ae 02       		.byte	0x84
+ 776 00af 84       		.uleb128 0x3
+ 777 00b0 03       		.align	2
+ 778 00b1 000000   	.LEFDE14:
+ 779              	.LSFDE16:
+ 780              		.4byte	.LEFDE16-.LASFDE16
+ 781 00b4 18000000 	.LASFDE16:
+ 782              		.4byte	.Lframe0
+ 783 00b8 00000000 		.4byte	.LFB4
+ 784 00bc 24030000 		.4byte	.LFE4-.LFB4
+ 785 00c0 4C010000 		.byte	0x4
+ 786 00c4 44       		.4byte	.LCFI5-.LFB4
+ 787              		.byte	0xe
+ 788 00c5 0E       		.uleb128 0x1c
+ 789 00c6 0C       		.byte	0x8e
+ 790 00c7 8E       		.uleb128 0x1
+ 791 00c8 01       		.byte	0x8a
+ 792 00c9 85       		.uleb128 0x2
+ 793 00ca 02       		.byte	0x88
+ 794 00cb 84       		.uleb128 0x3
+ 795 00cc 03       		.byte	0x87
+ 796 00cd 000000   		.uleb128 0x4
+ 797              		.byte	0x86
+ 798              		.uleb128 0x5
+ 799 00d0 20000000 		.byte	0x85
+ 800              		.uleb128 0x6
+ 801 00d4 00000000 		.byte	0x84
+ 802 00d8 70040000 		.uleb128 0x7
+ 803 00dc 54010000 		.align	2
+ 804 00e0 44       	.LEFDE16:
+ 805              		.file 2 "c:\\code\\arm\\armlib/armlibtypes.h"
+ 806 00e1 0E       		.file 3 "c:\\code\\arm\\armlib/net/net.h"
+ 807 00e2 1C       		.file 4 "c:\\programa\\winarm/arm-elf/include/stdint.h"
+ 808 00e3 8E       		.text
+ 809 00e4 01       	.Letext0:
+ 810 00e5 8A       		.section	.debug_loc,"",%progbits
+ 811 00e6 02       	.Ldebug_loc0:
+ 812 00e7 88       	.LLST1:
+ 813 00e8 03       		.4byte	.LFB3-.Ltext0
+ 814 00e9 87       		.4byte	.LCFI0-.Ltext0
+ 815 00ea 04       		.2byte	0x1
+ 816 00eb 86       		.byte	0x5d
+ 817 00ec 05       		.4byte	.LCFI0-.Ltext0
+ 818 00ed 85       		.4byte	.LFE3-.Ltext0
+ 819 00ee 06       		.2byte	0x2
+ 820 00ef 84       		.byte	0x7d
+ 821 00f0 07       		.sleb128 12
+ 822 00f1 000000   		.4byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 20
+
+
+ 823              		.4byte	0x0
+ 824              	.LLST2:
+ 825              		.4byte	.LVL0-.Ltext0
+ 826              		.4byte	.LVL1-.Ltext0
+ 827              		.2byte	0x1
+ 828              		.byte	0x50
+ 829              		.4byte	.LVL1-.Ltext0
+ 830              		.4byte	.LVL3-.Ltext0
+ 831              		.2byte	0x1
+ 832 0000 2C000000 		.byte	0x53
+ 833 0004 30000000 		.4byte	0x0
+ 834 0008 0100     		.4byte	0x0
+ 835 000a 5D       	.LLST3:
+ 836 000b 30000000 		.4byte	.LVL0-.Ltext0
+ 837 000f 58000000 		.4byte	.LVL2-.Ltext0
+ 838 0013 0200     		.2byte	0x1
+ 839 0015 7D       		.byte	0x51
+ 840 0016 0C       		.4byte	.LVL2-.Ltext0
+ 841 0017 00000000 		.4byte	.LFE3-.Ltext0
+ 842 001b 00000000 		.2byte	0x1
+ 843              		.byte	0x55
+ 844 001f 2C000000 		.4byte	0x0
+ 845 0023 40000000 		.4byte	0x0
+ 846 0027 0100     	.LLST6:
+ 847 0029 50       		.4byte	.LVL4-.Ltext0
+ 848 002a 40000000 		.4byte	.LVL5-.Ltext0
+ 849 002e 4C000000 		.2byte	0x1
+ 850 0032 0100     		.byte	0x50
+ 851 0034 53       		.4byte	.LVL5-.Ltext0
+ 852 0035 00000000 		.4byte	.LFE8-.Ltext0
+ 853 0039 00000000 		.2byte	0x1
+ 854              		.byte	0x51
+ 855 003d 2C000000 		.4byte	0x0
+ 856 0041 44000000 		.4byte	0x0
+ 857 0045 0100     	.LLST7:
+ 858 0047 51       		.4byte	.LFB6-.Ltext0
+ 859 0048 44000000 		.4byte	.LCFI1-.Ltext0
+ 860 004c 58000000 		.2byte	0x1
+ 861 0050 0100     		.byte	0x5d
+ 862 0052 55       		.4byte	.LCFI1-.Ltext0
+ 863 0053 00000000 		.4byte	.LFE6-.Ltext0
+ 864 0057 00000000 		.2byte	0x2
+ 865              		.byte	0x7d
+ 866 005b 88000000 		.sleb128 16
+ 867 005f 90000000 		.4byte	0x0
+ 868 0063 0100     		.4byte	0x0
+ 869 0065 50       	.LLST8:
+ 870 0066 90000000 		.4byte	.LVL6-.Ltext0
+ 871 006a BC000000 		.4byte	.LVL7-.Ltext0
+ 872 006e 0100     		.2byte	0x1
+ 873 0070 51       		.byte	0x50
+ 874 0071 00000000 		.4byte	.LVL7-.Ltext0
+ 875 0075 00000000 		.4byte	.LFE6-.Ltext0
+ 876              		.2byte	0x1
+ 877 0079 BC000000 		.byte	0x55
+ 878 007d C0000000 		.4byte	0x0
+ 879 0081 0100     		.4byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 21
+
+
+ 880 0083 5D       	.LLST9:
+ 881 0084 C0000000 		.4byte	.LVL6-.Ltext0
+ 882 0088 A8010000 		.4byte	.LVL8-.Ltext0
+ 883 008c 0200     		.2byte	0x1
+ 884 008e 7D       		.byte	0x51
+ 885 008f 10       		.4byte	.LVL8-.Ltext0
+ 886 0090 00000000 		.4byte	.LVL9-.Ltext0
+ 887 0094 00000000 		.2byte	0x1
+ 888              		.byte	0x50
+ 889 0098 BC000000 		.4byte	.LVL11-.Ltext0
+ 890 009c C8000000 		.4byte	.LVL12-.Ltext0
+ 891 00a0 0100     		.2byte	0x1
+ 892 00a2 50       		.byte	0x50
+ 893 00a3 C8000000 		.4byte	.LVL12-.Ltext0
+ 894 00a7 A8010000 		.4byte	.LVL13-.Ltext0
+ 895 00ab 0100     		.2byte	0x1
+ 896 00ad 55       		.byte	0x51
+ 897 00ae 00000000 		.4byte	0x0
+ 898 00b2 00000000 		.4byte	0x0
+ 899              	.LLST10:
+ 900 00b6 BC000000 		.4byte	.LVL10-.Ltext0
+ 901 00ba CC000000 		.4byte	.LVL11-.Ltext0
+ 902 00be 0100     		.2byte	0x1
+ 903 00c0 51       		.byte	0x56
+ 904 00c1 CC000000 		.4byte	.LVL14-.Ltext0
+ 905 00c5 D0000000 		.4byte	.LFE6-.Ltext0
+ 906 00c9 0100     		.2byte	0x1
+ 907 00cb 50       		.byte	0x56
+ 908 00cc D8000000 		.4byte	0x0
+ 909 00d0 FC000000 		.4byte	0x0
+ 910 00d4 0100     	.LLST11:
+ 911 00d6 50       		.4byte	.LFB5-.Ltext0
+ 912 00d7 FC000000 		.4byte	.LCFI2-.Ltext0
+ 913 00db 10010000 		.2byte	0x1
+ 914 00df 0100     		.byte	0x5d
+ 915 00e1 51       		.4byte	.LCFI2-.Ltext0
+ 916 00e2 00000000 		.4byte	.LFE5-.Ltext0
+ 917 00e6 00000000 		.2byte	0x2
+ 918              		.byte	0x7d
+ 919 00ea D4000000 		.sleb128 20
+ 920 00ee D8000000 		.4byte	0x0
+ 921 00f2 0100     		.4byte	0x0
+ 922 00f4 56       	.LLST12:
+ 923 00f5 14010000 		.4byte	.LVL15-.Ltext0
+ 924 00f9 A8010000 		.4byte	.LVL16-.Ltext0
+ 925 00fd 0100     		.2byte	0x1
+ 926 00ff 56       		.byte	0x50
+ 927 0100 00000000 		.4byte	.LVL16-.Ltext0
+ 928 0104 00000000 		.4byte	.LFE5-.Ltext0
+ 929              		.2byte	0x1
+ 930 0108 A8010000 		.byte	0x57
+ 931 010c AC010000 		.4byte	0x0
+ 932 0110 0100     		.4byte	0x0
+ 933 0112 5D       	.LLST13:
+ 934 0113 AC010000 		.4byte	.LFB10-.Ltext0
+ 935 0117 A8020000 		.4byte	.LCFI3-.Ltext0
+ 936 011b 0200     		.2byte	0x1
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 22
+
+
+ 937 011d 7D       		.byte	0x5d
+ 938 011e 14       		.4byte	.LCFI3-.Ltext0
+ 939 011f 00000000 		.4byte	.LFE10-.Ltext0
+ 940 0123 00000000 		.2byte	0x2
+ 941              		.byte	0x7d
+ 942 0127 A8010000 		.sleb128 12
+ 943 012b D4010000 		.4byte	0x0
+ 944 012f 0100     		.4byte	0x0
+ 945 0131 50       	.LLST14:
+ 946 0132 D4010000 		.4byte	.LFB9-.Ltext0
+ 947 0136 A8020000 		.4byte	.LCFI4-.Ltext0
+ 948 013a 0100     		.2byte	0x1
+ 949 013c 57       		.byte	0x5d
+ 950 013d 00000000 		.4byte	.LCFI4-.Ltext0
+ 951 0141 00000000 		.4byte	.LFE9-.Ltext0
+ 952              		.2byte	0x2
+ 953 0145 A8020000 		.byte	0x7d
+ 954 0149 AC020000 		.sleb128 12
+ 955 014d 0100     		.4byte	0x0
+ 956 014f 5D       		.4byte	0x0
+ 957 0150 AC020000 	.LLST15:
+ 958 0154 24030000 		.4byte	.LVL17-.Ltext0
+ 959 0158 0200     		.4byte	.LVL18-.Ltext0
+ 960 015a 7D       		.2byte	0x1
+ 961 015b 0C       		.byte	0x50
+ 962 015c 00000000 		.4byte	.LVL18-.Ltext0
+ 963 0160 00000000 		.4byte	.LFE9-.Ltext0
+ 964              		.2byte	0x1
+ 965 0164 24030000 		.byte	0x55
+ 966 0168 28030000 		.4byte	0x0
+ 967 016c 0100     		.4byte	0x0
+ 968 016e 5D       	.LLST16:
+ 969 016f 28030000 		.4byte	.LFB4-.Ltext0
+ 970 0173 70040000 		.4byte	.LCFI5-.Ltext0
+ 971 0177 0200     		.2byte	0x1
+ 972 0179 7D       		.byte	0x5d
+ 973 017a 0C       		.4byte	.LCFI5-.Ltext0
+ 974 017b 00000000 		.4byte	.LFE4-.Ltext0
+ 975 017f 00000000 		.2byte	0x2
+ 976              		.byte	0x7d
+ 977 0183 24030000 		.sleb128 28
+ 978 0187 30030000 		.4byte	0x0
+ 979 018b 0100     		.4byte	0x0
+ 980 018d 50       	.LLST17:
+ 981 018e 30030000 		.4byte	.LVL19-.Ltext0
+ 982 0192 70040000 		.4byte	.LVL21-.Ltext0
+ 983 0196 0100     		.2byte	0x1
+ 984 0198 55       		.byte	0x50
+ 985 0199 00000000 		.4byte	.LVL21-.Ltext0
+ 986 019d 00000000 		.4byte	.LFE4-.Ltext0
+ 987              		.2byte	0x1
+ 988 01a1 70040000 		.byte	0x5a
+ 989 01a5 74040000 		.4byte	0x0
+ 990 01a9 0100     		.4byte	0x0
+ 991 01ab 5D       	.LLST18:
+ 992 01ac 74040000 		.4byte	.LVL19-.Ltext0
+ 993 01b0 C4050000 		.4byte	.LVL20-.Ltext0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 23
+
+
+ 994 01b4 0200     		.2byte	0x1
+ 995 01b6 7D       		.byte	0x51
+ 996 01b7 1C       		.4byte	.LVL20-.Ltext0
+ 997 01b8 00000000 		.4byte	.LFE4-.Ltext0
+ 998 01bc 00000000 		.2byte	0x1
+ 999              		.byte	0x57
+ 1000 01c0 70040000 		.4byte	0x0
+ 1001 01c4 A4040000 		.4byte	0x0
+ 1002 01c8 0100     		.section	.debug_info
+ 1003 01ca 50       		.4byte	0x4b6
+ 1004 01cb A4040000 		.2byte	0x2
+ 1005 01cf C4050000 		.4byte	.Ldebug_abbrev0
+ 1006 01d3 0100     		.byte	0x4
+ 1007 01d5 5A       		.uleb128 0x1
+ 1008 01d6 00000000 		.4byte	.Ldebug_line0
+ 1009 01da 00000000 		.4byte	.Letext0
+ 1010              		.4byte	.Ltext0
+ 1011 01de 70040000 		.4byte	.LASF58
+ 1012 01e2 84040000 		.byte	0x1
+ 1013 01e6 0100     		.4byte	.LASF59
+ 1014 01e8 51       		.4byte	.LASF60
+ 1015 01e9 84040000 		.uleb128 0x2
+ 1016 01ed C4050000 		.ascii	"u08\000"
+ 1017 01f1 0100     		.byte	0x2
+ 1018 01f3 57       		.byte	0x20
+ 1019 01f4 00000000 		.4byte	0x30
+ 1020 01f8 00000000 		.uleb128 0x3
+ 1021              		.4byte	.LASF0
+ 1022 0000 B6040000 		.byte	0x1
+ 1023 0004 0200     		.byte	0x8
+ 1024 0006 00000000 		.uleb128 0x3
+ 1025 000a 04       		.4byte	.LASF1
+ 1026 000b 01       		.byte	0x1
+ 1027 000c 00000000 		.byte	0x6
+ 1028 0010 C4050000 		.uleb128 0x3
+ 1029 0014 00000000 		.4byte	.LASF2
+ 1030 0018 36000000 		.byte	0x2
+ 1031 001c 01       		.byte	0x7
+ 1032 001d 35020000 		.uleb128 0x3
+ 1033 0021 F0000000 		.4byte	.LASF3
+ 1034 0025 02       		.byte	0x2
+ 1035 0026 75303800 		.byte	0x5
+ 1036 002a 02       		.uleb128 0x3
+ 1037 002b 20       		.4byte	.LASF4
+ 1038 002c 30000000 		.byte	0x4
+ 1039 0030 03       		.byte	0x7
+ 1040 0031 2E010000 		.uleb128 0x3
+ 1041 0035 01       		.4byte	.LASF5
+ 1042 0036 08       		.byte	0x4
+ 1043 0037 03       		.byte	0x5
+ 1044 0038 52010000 		.uleb128 0x3
+ 1045 003c 01       		.4byte	.LASF6
+ 1046 003d 06       		.byte	0x8
+ 1047 003e 03       		.byte	0x7
+ 1048 003f C5010000 		.uleb128 0x3
+ 1049 0043 02       		.4byte	.LASF7
+ 1050 0044 07       		.byte	0x8
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 24
+
+
+ 1051 0045 03       		.byte	0x5
+ 1052 0046 67000000 		.uleb128 0x3
+ 1053 004a 02       		.4byte	.LASF8
+ 1054 004b 05       		.byte	0x4
+ 1055 004c 03       		.byte	0x7
+ 1056 004d 0A020000 		.uleb128 0x3
+ 1057 0051 04       		.4byte	.LASF9
+ 1058 0052 07       		.byte	0x1
+ 1059 0053 03       		.byte	0x8
+ 1060 0054 DB000000 		.uleb128 0x4
+ 1061 0058 04       		.ascii	"int\000"
+ 1062 0059 05       		.byte	0x4
+ 1063 005a 03       		.byte	0x5
+ 1064 005b 5E010000 		.uleb128 0x5
+ 1065 005f 08       		.4byte	.LASF10
+ 1066 0060 07       		.byte	0x4
+ 1067 0061 03       		.byte	0x2d
+ 1068 0062 C8000000 		.4byte	0x37
+ 1069 0066 08       		.uleb128 0x5
+ 1070 0067 05       		.4byte	.LASF11
+ 1071 0068 03       		.byte	0x4
+ 1072 0069 7D010000 		.byte	0x2e
+ 1073 006d 04       		.4byte	0x30
+ 1074 006e 07       		.uleb128 0x5
+ 1075 006f 03       		.4byte	.LASF12
+ 1076 0070 E3010000 		.byte	0x4
+ 1077 0074 01       		.byte	0x3a
+ 1078 0075 08       		.4byte	0x3e
+ 1079 0076 04       		.uleb128 0x5
+ 1080 0077 696E7400 		.4byte	.LASF13
+ 1081 007b 04       		.byte	0x4
+ 1082 007c 05       		.byte	0x54
+ 1083 007d 05       		.4byte	0x4c
+ 1084 007e 26000000 		.uleb128 0x6
+ 1085 0082 04       		.4byte	0xc4
+ 1086 0083 2D       		.4byte	.LASF14
+ 1087 0084 37000000 		.byte	0x6
+ 1088 0088 05       		.byte	0x3
+ 1089 0089 81000000 		.byte	0x23
+ 1090 008d 04       		.uleb128 0x7
+ 1091 008e 2E       		.4byte	.LASF16
+ 1092 008f 30000000 		.byte	0x3
+ 1093 0093 05       		.byte	0x24
+ 1094 0094 93010000 		.4byte	0xc4
+ 1095 0098 04       		.byte	0x2
+ 1096 0099 3A       		.byte	0x23
+ 1097 009a 3E000000 		.uleb128 0x0
+ 1098 009e 05       		.byte	0x0
+ 1099 009f A5000000 		.uleb128 0x8
+ 1100 00a3 04       		.4byte	0xd4
+ 1101 00a4 54       		.4byte	0x88
+ 1102 00a5 4C000000 		.uleb128 0x9
+ 1103 00a9 06       		.4byte	0xd4
+ 1104 00aa C4000000 		.byte	0x5
+ 1105 00ae BD000000 		.byte	0x0
+ 1106 00b2 06       		.uleb128 0x3
+ 1107 00b3 03       		.4byte	.LASF4
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 25
+
+
+ 1108 00b4 23       		.byte	0x4
+ 1109 00b5 07       		.byte	0x7
+ 1110 00b6 E4000000 		.uleb128 0x6
+ 1111 00ba 03       		.4byte	0x112
+ 1112 00bb 24       		.4byte	.LASF15
+ 1113 00bc C4000000 		.byte	0xe
+ 1114 00c0 02       		.byte	0x3
+ 1115 00c1 23       		.byte	0x29
+ 1116 00c2 00       		.uleb128 0x7
+ 1117 00c3 00       		.4byte	.LASF17
+ 1118 00c4 08       		.byte	0x3
+ 1119 00c5 D4000000 		.byte	0x2a
+ 1120 00c9 88000000 		.4byte	0xa9
+ 1121 00cd 09       		.byte	0x2
+ 1122 00ce D4000000 		.byte	0x23
+ 1123 00d2 05       		.uleb128 0x0
+ 1124 00d3 00       		.uleb128 0xa
+ 1125 00d4 03       		.ascii	"src\000"
+ 1126 00d5 0A020000 		.byte	0x3
+ 1127 00d9 04       		.byte	0x2b
+ 1128 00da 07       		.4byte	0xa9
+ 1129 00db 06       		.byte	0x2
+ 1130 00dc 12010000 		.byte	0x23
+ 1131 00e0 19000000 		.uleb128 0x6
+ 1132 00e4 0E       		.uleb128 0x7
+ 1133 00e5 03       		.4byte	.LASF18
+ 1134 00e6 29       		.byte	0x3
+ 1135 00e7 07       		.byte	0x2c
+ 1136 00e8 14000000 		.4byte	0x93
+ 1137 00ec 03       		.byte	0x2
+ 1138 00ed 2A       		.byte	0x23
+ 1139 00ee A9000000 		.uleb128 0xc
+ 1140 00f2 02       		.byte	0x0
+ 1141 00f3 23       		.uleb128 0x6
+ 1142 00f4 00       		.4byte	0x19d
+ 1143 00f5 0A       		.4byte	.LASF19
+ 1144 00f6 73726300 		.byte	0x1c
+ 1145 00fa 03       		.byte	0x3
+ 1146 00fb 2B       		.byte	0x37
+ 1147 00fc A9000000 		.uleb128 0x7
+ 1148 0100 02       		.4byte	.LASF20
+ 1149 0101 23       		.byte	0x3
+ 1150 0102 06       		.byte	0x38
+ 1151 0103 07       		.4byte	0x93
+ 1152 0104 4B000000 		.byte	0x2
+ 1153 0108 03       		.byte	0x23
+ 1154 0109 2C       		.uleb128 0x0
+ 1155 010a 93000000 		.uleb128 0x7
+ 1156 010e 02       		.4byte	.LASF21
+ 1157 010f 23       		.byte	0x3
+ 1158 0110 0C       		.byte	0x39
+ 1159 0111 00       		.4byte	0x93
+ 1160 0112 06       		.byte	0x2
+ 1161 0113 9D010000 		.byte	0x23
+ 1162 0117 A5010000 		.uleb128 0x2
+ 1163 011b 1C       		.uleb128 0x7
+ 1164 011c 03       		.4byte	.LASF22
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 26
+
+
+ 1165 011d 37       		.byte	0x3
+ 1166 011e 07       		.byte	0x3a
+ 1167 011f E8010000 		.4byte	0x88
+ 1168 0123 03       		.byte	0x2
+ 1169 0124 38       		.byte	0x23
+ 1170 0125 93000000 		.uleb128 0x4
+ 1171 0129 02       		.uleb128 0x7
+ 1172 012a 23       		.4byte	.LASF23
+ 1173 012b 00       		.byte	0x3
+ 1174 012c 07       		.byte	0x3b
+ 1175 012d AE000000 		.4byte	0x88
+ 1176 0131 03       		.byte	0x2
+ 1177 0132 39       		.byte	0x23
+ 1178 0133 93000000 		.uleb128 0x5
+ 1179 0137 02       		.uleb128 0x7
+ 1180 0138 23       		.4byte	.LASF24
+ 1181 0139 02       		.byte	0x3
+ 1182 013a 07       		.byte	0x3c
+ 1183 013b 90000000 		.4byte	0x93
+ 1184 013f 03       		.byte	0x2
+ 1185 0140 3A       		.byte	0x23
+ 1186 0141 88000000 		.uleb128 0x6
+ 1187 0145 02       		.uleb128 0x7
+ 1188 0146 23       		.4byte	.LASF25
+ 1189 0147 04       		.byte	0x3
+ 1190 0148 07       		.byte	0x3d
+ 1191 0149 BC010000 		.4byte	0xa9
+ 1192 014d 03       		.byte	0x2
+ 1193 014e 3B       		.byte	0x23
+ 1194 014f 88000000 		.uleb128 0x8
+ 1195 0153 02       		.uleb128 0x7
+ 1196 0154 23       		.4byte	.LASF26
+ 1197 0155 05       		.byte	0x3
+ 1198 0156 07       		.byte	0x3e
+ 1199 0157 89000000 		.4byte	0x9e
+ 1200 015b 03       		.byte	0x2
+ 1201 015c 3C       		.byte	0x23
+ 1202 015d 93000000 		.uleb128 0xe
+ 1203 0161 02       		.uleb128 0x7
+ 1204 0162 23       		.4byte	.LASF27
+ 1205 0163 06       		.byte	0x3
+ 1206 0164 07       		.byte	0x3f
+ 1207 0165 50000000 		.4byte	0xa9
+ 1208 0169 03       		.byte	0x2
+ 1209 016a 3D       		.byte	0x23
+ 1210 016b A9000000 		.uleb128 0x12
+ 1211 016f 02       		.uleb128 0x7
+ 1212 0170 23       		.4byte	.LASF28
+ 1213 0171 08       		.byte	0x3
+ 1214 0172 07       		.byte	0x40
+ 1215 0173 96000000 		.4byte	0x9e
+ 1216 0177 03       		.byte	0x2
+ 1217 0178 3E       		.byte	0x23
+ 1218 0179 9E000000 		.uleb128 0x18
+ 1219 017d 02       		.byte	0x0
+ 1220 017e 23       		.uleb128 0x6
+ 1221 017f 0E       		.4byte	0x236
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 27
+
+
+ 1222 0180 07       		.4byte	.LASF29
+ 1223 0181 4A010000 		.byte	0x14
+ 1224 0185 03       		.byte	0x3
+ 1225 0186 3F       		.byte	0x49
+ 1226 0187 A9000000 		.uleb128 0xa
+ 1227 018b 02       		.ascii	"vhl\000"
+ 1228 018c 23       		.byte	0x3
+ 1229 018d 12       		.byte	0x4a
+ 1230 018e 07       		.4byte	0x88
+ 1231 018f 75010000 		.byte	0x2
+ 1232 0193 03       		.byte	0x23
+ 1233 0194 40       		.uleb128 0x0
+ 1234 0195 9E000000 		.uleb128 0xa
+ 1235 0199 02       		.ascii	"tos\000"
+ 1236 019a 23       		.byte	0x3
+ 1237 019b 18       		.byte	0x4b
+ 1238 019c 00       		.4byte	0x88
+ 1239 019d 06       		.byte	0x2
+ 1240 019e 36020000 		.byte	0x23
+ 1241 01a2 00000000 		.uleb128 0x1
+ 1242 01a6 14       		.uleb128 0xa
+ 1243 01a7 03       		.ascii	"len\000"
+ 1244 01a8 49       		.byte	0x3
+ 1245 01a9 0A       		.byte	0x4c
+ 1246 01aa 76686C00 		.4byte	0x93
+ 1247 01ae 03       		.byte	0x2
+ 1248 01af 4A       		.byte	0x23
+ 1249 01b0 88000000 		.uleb128 0x2
+ 1250 01b4 02       		.uleb128 0x7
+ 1251 01b5 23       		.4byte	.LASF30
+ 1252 01b6 00       		.byte	0x3
+ 1253 01b7 0A       		.byte	0x4d
+ 1254 01b8 746F7300 		.4byte	0x93
+ 1255 01bc 03       		.byte	0x2
+ 1256 01bd 4B       		.byte	0x23
+ 1257 01be 88000000 		.uleb128 0x4
+ 1258 01c2 02       		.uleb128 0x7
+ 1259 01c3 23       		.4byte	.LASF31
+ 1260 01c4 01       		.byte	0x3
+ 1261 01c5 0A       		.byte	0x4e
+ 1262 01c6 6C656E00 		.4byte	0x93
+ 1263 01ca 03       		.byte	0x2
+ 1264 01cb 4C       		.byte	0x23
+ 1265 01cc 93000000 		.uleb128 0x6
+ 1266 01d0 02       		.uleb128 0xa
+ 1267 01d1 23       		.ascii	"ttl\000"
+ 1268 01d2 02       		.byte	0x3
+ 1269 01d3 07       		.byte	0x4f
+ 1270 01d4 D6000000 		.4byte	0x88
+ 1271 01d8 03       		.byte	0x2
+ 1272 01d9 4D       		.byte	0x23
+ 1273 01da 93000000 		.uleb128 0x8
+ 1274 01de 02       		.uleb128 0x7
+ 1275 01df 23       		.4byte	.LASF32
+ 1276 01e0 04       		.byte	0x3
+ 1277 01e1 07       		.byte	0x50
+ 1278 01e2 9C010000 		.4byte	0x88
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 28
+
+
+ 1279 01e6 03       		.byte	0x2
+ 1280 01e7 4E       		.byte	0x23
+ 1281 01e8 93000000 		.uleb128 0x9
+ 1282 01ec 02       		.uleb128 0x7
+ 1283 01ed 23       		.4byte	.LASF33
+ 1284 01ee 06       		.byte	0x3
+ 1285 01ef 0A       		.byte	0x51
+ 1286 01f0 74746C00 		.4byte	0x93
+ 1287 01f4 03       		.byte	0x2
+ 1288 01f5 4F       		.byte	0x23
+ 1289 01f6 88000000 		.uleb128 0xa
+ 1290 01fa 02       		.uleb128 0x7
+ 1291 01fb 23       		.4byte	.LASF34
+ 1292 01fc 08       		.byte	0x3
+ 1293 01fd 07       		.byte	0x52
+ 1294 01fe 28010000 		.4byte	0x9e
+ 1295 0202 03       		.byte	0x2
+ 1296 0203 50       		.byte	0x23
+ 1297 0204 88000000 		.uleb128 0xc
+ 1298 0208 02       		.uleb128 0x7
+ 1299 0209 23       		.4byte	.LASF35
+ 1300 020a 09       		.byte	0x3
+ 1301 020b 07       		.byte	0x53
+ 1302 020c 72020000 		.4byte	0x9e
+ 1303 0210 03       		.byte	0x2
+ 1304 0211 51       		.byte	0x23
+ 1305 0212 93000000 		.uleb128 0x10
+ 1306 0216 02       		.byte	0x0
+ 1307 0217 23       		.uleb128 0x6
+ 1308 0218 0A       		.4byte	0x25f
+ 1309 0219 07       		.4byte	.LASF36
+ 1310 021a 1E010000 		.byte	0x2a
+ 1311 021e 03       		.byte	0x3
+ 1312 021f 52       		.byte	0x8c
+ 1313 0220 9E000000 		.uleb128 0xa
+ 1314 0224 02       		.ascii	"eth\000"
+ 1315 0225 23       		.byte	0x3
+ 1316 0226 0C       		.byte	0x8d
+ 1317 0227 07       		.4byte	0xdb
+ 1318 0228 1C020000 		.byte	0x2
+ 1319 022c 03       		.byte	0x23
+ 1320 022d 53       		.uleb128 0x0
+ 1321 022e 9E000000 		.uleb128 0xa
+ 1322 0232 02       		.ascii	"arp\000"
+ 1323 0233 23       		.byte	0x3
+ 1324 0234 10       		.byte	0x8e
+ 1325 0235 00       		.4byte	0x112
+ 1326 0236 06       		.byte	0x2
+ 1327 0237 5F020000 		.byte	0x23
+ 1328 023b 71000000 		.uleb128 0xe
+ 1329 023f 2A       		.byte	0x0
+ 1330 0240 03       		.uleb128 0x6
+ 1331 0241 8C       		.4byte	0x287
+ 1332 0242 0A       		.4byte	.LASF37
+ 1333 0243 65746800 		.byte	0x22
+ 1334 0247 03       		.byte	0x3
+ 1335 0248 8D       		.byte	0x93
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 29
+
+
+ 1336 0249 DB000000 		.uleb128 0xa
+ 1337 024d 02       		.ascii	"eth\000"
+ 1338 024e 23       		.byte	0x3
+ 1339 024f 00       		.byte	0x94
+ 1340 0250 0A       		.4byte	0xdb
+ 1341 0251 61727000 		.byte	0x2
+ 1342 0255 03       		.byte	0x23
+ 1343 0256 8E       		.uleb128 0x0
+ 1344 0257 12010000 		.uleb128 0xa
+ 1345 025b 02       		.ascii	"ip\000"
+ 1346 025c 23       		.byte	0x3
+ 1347 025d 0E       		.byte	0x95
+ 1348 025e 00       		.4byte	0x19d
+ 1349 025f 06       		.byte	0x2
+ 1350 0260 87020000 		.byte	0x23
+ 1351 0264 63020000 		.uleb128 0xe
+ 1352 0268 22       		.byte	0x0
+ 1353 0269 03       		.uleb128 0x6
+ 1354 026a 93       		.4byte	0x2be
+ 1355 026b 0A       		.4byte	.LASF38
+ 1356 026c 65746800 		.byte	0xc
+ 1357 0270 03       		.byte	0x1
+ 1358 0271 94       		.byte	0x1a
+ 1359 0272 DB000000 		.uleb128 0x7
+ 1360 0276 02       		.4byte	.LASF39
+ 1361 0277 23       		.byte	0x1
+ 1362 0278 00       		.byte	0x1b
+ 1363 0279 0A       		.4byte	0x9e
+ 1364 027a 697000   		.byte	0x2
+ 1365 027d 03       		.byte	0x23
+ 1366 027e 95       		.uleb128 0x0
+ 1367 027f 9D010000 		.uleb128 0x7
+ 1368 0283 02       		.4byte	.LASF40
+ 1369 0284 23       		.byte	0x1
+ 1370 0285 0E       		.byte	0x1c
+ 1371 0286 00       		.4byte	0xa9
+ 1372 0287 06       		.byte	0x2
+ 1373 0288 BE020000 		.byte	0x23
+ 1374 028c 8A020000 		.uleb128 0x4
+ 1375 0290 0C       		.uleb128 0x7
+ 1376 0291 01       		.4byte	.LASF41
+ 1377 0292 1A       		.byte	0x1
+ 1378 0293 07       		.byte	0x1d
+ 1379 0294 E9000000 		.4byte	0x88
+ 1380 0298 01       		.byte	0x2
+ 1381 0299 1B       		.byte	0x23
+ 1382 029a 9E000000 		.uleb128 0xa
+ 1383 029e 02       		.byte	0x0
+ 1384 029f 23       		.uleb128 0xb
+ 1385 02a0 00       		.4byte	0x2df
+ 1386 02a1 07       		.byte	0x1
+ 1387 02a2 EF010000 		.4byte	.LASF42
+ 1388 02a6 01       		.byte	0x1
+ 1389 02a7 1C       		.byte	0x25
+ 1390 02a8 A9000000 		.byte	0x1
+ 1391 02ac 02       		.4byte	.LFB2
+ 1392 02ad 23       		.4byte	.LFE2
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 30
+
+
+ 1393 02ae 04       		.byte	0x1
+ 1394 02af 07       		.byte	0x5d
+ 1395 02b0 B7010000 		.uleb128 0xc
+ 1396 02b4 01       		.ascii	"i\000"
+ 1397 02b5 1D       		.byte	0x1
+ 1398 02b6 88000000 		.byte	0x26
+ 1399 02ba 02       		.4byte	0x25
+ 1400 02bb 23       		.byte	0x0
+ 1401 02bc 0A       		.uleb128 0xd
+ 1402 02bd 00       		.4byte	0x317
+ 1403 02be 0B       		.byte	0x1
+ 1404 02bf DF020000 		.4byte	.LASF43
+ 1405 02c3 01       		.byte	0x1
+ 1406 02c4 52020000 		.byte	0x30
+ 1407 02c8 01       		.byte	0x1
+ 1408 02c9 25       		.4byte	.LFB3
+ 1409 02ca 01       		.4byte	.LFE3
+ 1410 02cb 00000000 		.4byte	.LLST1
+ 1411 02cf 2C000000 		.uleb128 0xe
+ 1412 02d3 01       		.4byte	.LASF44
+ 1413 02d4 5D       		.byte	0x1
+ 1414 02d5 0C       		.byte	0x2f
+ 1415 02d6 6900     		.4byte	0x317
+ 1416 02d8 01       		.4byte	.LLST2
+ 1417 02d9 26       		.uleb128 0xe
+ 1418 02da 25000000 		.4byte	.LASF45
+ 1419 02de 00       		.byte	0x1
+ 1420 02df 0D       		.byte	0x2f
+ 1421 02e0 17030000 		.4byte	0x9e
+ 1422 02e4 01       		.4byte	.LLST3
+ 1423 02e5 3C010000 		.byte	0x0
+ 1424 02e9 01       		.uleb128 0xf
+ 1425 02ea 30       		.byte	0x4
+ 1426 02eb 01       		.4byte	0xa9
+ 1427 02ec 2C000000 		.uleb128 0xb
+ 1428 02f0 58000000 		.4byte	0x340
+ 1429 02f4 00000000 		.byte	0x1
+ 1430 02f8 0E       		.4byte	.LASF46
+ 1431 02f9 B7000000 		.byte	0x1
+ 1432 02fd 01       		.byte	0x9d
+ 1433 02fe 2F       		.byte	0x1
+ 1434 02ff 17030000 		.4byte	.LFB7
+ 1435 0303 1F000000 		.4byte	.LFE7
+ 1436 0307 0E       		.byte	0x1
+ 1437 0308 B2010000 		.byte	0x5d
+ 1438 030c 01       		.uleb128 0x10
+ 1439 030d 2F       		.4byte	.LASF47
+ 1440 030e 9E000000 		.byte	0x1
+ 1441 0312 3D000000 		.byte	0x9e
+ 1442 0316 00       		.4byte	0x76
+ 1443 0317 0F       		.byte	0x0
+ 1444 0318 04       		.uleb128 0x11
+ 1445 0319 A9000000 		.4byte	0x374
+ 1446 031d 0B       		.byte	0x1
+ 1447 031e 40030000 		.4byte	.LASF48
+ 1448 0322 01       		.byte	0x1
+ 1449 0323 8A010000 		.byte	0xaa
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 31
+
+
+ 1450 0327 01       		.byte	0x1
+ 1451 0328 9D       		.4byte	0x76
+ 1452 0329 01       		.4byte	.LFB8
+ 1453 032a 58000000 		.4byte	.LFE8
+ 1454 032e 88000000 		.byte	0x1
+ 1455 0332 01       		.byte	0x5d
+ 1456 0333 5D       		.uleb128 0xe
+ 1457 0334 10       		.4byte	.LASF39
+ 1458 0335 84020000 		.byte	0x1
+ 1459 0339 01       		.byte	0xa9
+ 1460 033a 9E       		.4byte	0x9e
+ 1461 033b 76000000 		.4byte	.LLST6
+ 1462 033f 00       		.uleb128 0xc
+ 1463 0340 11       		.ascii	"i\000"
+ 1464 0341 74030000 		.byte	0x1
+ 1465 0345 01       		.byte	0xab
+ 1466 0346 D8010000 		.4byte	0x88
+ 1467 034a 01       		.byte	0x0
+ 1468 034b AA       		.uleb128 0xd
+ 1469 034c 01       		.4byte	0x3bb
+ 1470 034d 76000000 		.byte	0x1
+ 1471 0351 88000000 		.4byte	.LASF49
+ 1472 0355 BC000000 		.byte	0x1
+ 1473 0359 01       		.byte	0x7d
+ 1474 035a 5D       		.byte	0x1
+ 1475 035b 0E       		.4byte	.LFB6
+ 1476 035c E9000000 		.4byte	.LFE6
+ 1477 0360 01       		.4byte	.LLST7
+ 1478 0361 A9       		.uleb128 0xe
+ 1479 0362 9E000000 		.4byte	.LASF50
+ 1480 0366 5B000000 		.byte	0x1
+ 1481 036a 0C       		.byte	0x7c
+ 1482 036b 6900     		.4byte	0x3bb
+ 1483 036d 01       		.4byte	.LLST8
+ 1484 036e AB       		.uleb128 0xe
+ 1485 036f 88000000 		.4byte	.LASF51
+ 1486 0373 00       		.byte	0x1
+ 1487 0374 0D       		.byte	0x7c
+ 1488 0375 BB030000 		.4byte	0x9e
+ 1489 0379 01       		.4byte	.LLST9
+ 1490 037a F7010000 		.uleb128 0x12
+ 1491 037e 01       		.4byte	.LASF47
+ 1492 037f 7D       		.byte	0x1
+ 1493 0380 01       		.byte	0x7e
+ 1494 0381 BC000000 		.4byte	0x76
+ 1495 0385 A8010000 		.4byte	.LLST10
+ 1496 0389 79000000 		.byte	0x0
+ 1497 038d 0E       		.uleb128 0xf
+ 1498 038e 9E000000 		.byte	0x4
+ 1499 0392 01       		.4byte	0x25f
+ 1500 0393 7C       		.uleb128 0xd
+ 1501 0394 BB030000 		.4byte	0x3f5
+ 1502 0398 98000000 		.byte	0x1
+ 1503 039c 0E       		.4byte	.LASF52
+ 1504 039d 7B020000 		.byte	0x1
+ 1505 03a1 01       		.byte	0x5d
+ 1506 03a2 7C       		.byte	0x1
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 32
+
+
+ 1507 03a3 9E000000 		.4byte	.LFB5
+ 1508 03a7 B6000000 		.4byte	.LFE5
+ 1509 03ab 12       		.4byte	.LLST11
+ 1510 03ac 84020000 		.uleb128 0xe
+ 1511 03b0 01       		.4byte	.LASF50
+ 1512 03b1 7E       		.byte	0x1
+ 1513 03b2 76000000 		.byte	0x5c
+ 1514 03b6 EA000000 		.4byte	0x3bb
+ 1515 03ba 00       		.4byte	.LLST12
+ 1516 03bb 0F       		.uleb128 0x10
+ 1517 03bc 04       		.4byte	.LASF47
+ 1518 03bd 5F020000 		.byte	0x1
+ 1519 03c1 0D       		.byte	0x5e
+ 1520 03c2 F5030000 		.4byte	0x7d
+ 1521 03c6 01       		.byte	0x0
+ 1522 03c7 0C000000 		.uleb128 0xd
+ 1523 03cb 01       		.4byte	0x418
+ 1524 03cc 5D       		.byte	0x1
+ 1525 03cd 01       		.4byte	.LASF53
+ 1526 03ce A8010000 		.byte	0x1
+ 1527 03d2 A8020000 		.byte	0xd5
+ 1528 03d6 08010000 		.byte	0x1
+ 1529 03da 0E       		.4byte	.LFB10
+ 1530 03db 9E000000 		.4byte	.LFE10
+ 1531 03df 01       		.4byte	.LLST13
+ 1532 03e0 5C       		.uleb128 0xc
+ 1533 03e1 BB030000 		.ascii	"i\000"
+ 1534 03e5 27010000 		.byte	0x1
+ 1535 03e9 10       		.byte	0xd6
+ 1536 03ea 84020000 		.4byte	0x88
+ 1537 03ee 01       		.byte	0x0
+ 1538 03ef 5E       		.uleb128 0xd
+ 1539 03f0 7D000000 		.4byte	0x441
+ 1540 03f4 00       		.byte	0x1
+ 1541 03f5 0D       		.4byte	.LASF54
+ 1542 03f6 18040000 		.byte	0x1
+ 1543 03fa 01       		.byte	0xbd
+ 1544 03fb 27020000 		.byte	0x1
+ 1545 03ff 01       		.4byte	.LFB9
+ 1546 0400 D5       		.4byte	.LFE9
+ 1547 0401 01       		.4byte	.LLST14
+ 1548 0402 A8020000 		.uleb128 0xe
+ 1549 0406 24030000 		.4byte	.LASF50
+ 1550 040a 45010000 		.byte	0x1
+ 1551 040e 0C       		.byte	0xbc
+ 1552 040f 6900     		.4byte	0x441
+ 1553 0411 01       		.4byte	.LLST15
+ 1554 0412 D6       		.byte	0x0
+ 1555 0413 88000000 		.uleb128 0xf
+ 1556 0417 00       		.byte	0x4
+ 1557 0418 0D       		.4byte	0x112
+ 1558 0419 41040000 		.uleb128 0xd
+ 1559 041d 01       		.4byte	0x47f
+ 1560 041e 58000000 		.byte	0x1
+ 1561 0422 01       		.4byte	.LASF55
+ 1562 0423 BD       		.byte	0x1
+ 1563 0424 01       		.byte	0x37
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 33
+
+
+ 1564 0425 24030000 		.byte	0x1
+ 1565 0429 70040000 		.4byte	.LFB4
+ 1566 042d 64010000 		.4byte	.LFE4
+ 1567 0431 0E       		.4byte	.LLST16
+ 1568 0432 9E000000 		.uleb128 0x13
+ 1569 0436 01       		.ascii	"len\000"
+ 1570 0437 BC       		.byte	0x1
+ 1571 0438 41040000 		.byte	0x36
+ 1572 043c 83010000 		.4byte	0x68
+ 1573 0440 00       		.4byte	.LLST17
+ 1574 0441 0F       		.uleb128 0xe
+ 1575 0442 04       		.4byte	.LASF50
+ 1576 0443 12010000 		.byte	0x1
+ 1577 0447 0D       		.byte	0x36
+ 1578 0448 7F040000 		.4byte	0x47f
+ 1579 044c 01       		.4byte	.LLST18
+ 1580 044d 5A020000 		.byte	0x0
+ 1581 0451 01       		.uleb128 0xf
+ 1582 0452 37       		.byte	0x4
+ 1583 0453 01       		.4byte	0x236
+ 1584 0454 70040000 		.uleb128 0x14
+ 1585 0458 C4050000 		.4byte	.LASF56
+ 1586 045c A1010000 		.byte	0x1
+ 1587 0460 13       		.byte	0x20
+ 1588 0461 6C656E00 		.4byte	0x287
+ 1589 0465 01       		.byte	0x1
+ 1590 0466 36       		.byte	0x5
+ 1591 0467 68000000 		.byte	0x3
+ 1592 046b C0010000 		.4byte	ArpMyAddr
+ 1593 046f 0E       		.uleb128 0x8
+ 1594 0470 9E000000 		.4byte	0x4a7
+ 1595 0474 01       		.4byte	0x287
+ 1596 0475 36       		.uleb128 0x9
+ 1597 0476 7F040000 		.4byte	0xd4
+ 1598 047a DE010000 		.byte	0x7
+ 1599 047e 00       		.byte	0x0
+ 1600 047f 0F       		.uleb128 0x14
+ 1601 0480 04       		.4byte	.LASF57
+ 1602 0481 36020000 		.byte	0x1
+ 1603 0485 14       		.byte	0x21
+ 1604 0486 00020000 		.4byte	0x497
+ 1605 048a 01       		.byte	0x1
+ 1606 048b 20       		.byte	0x5
+ 1607 048c 87020000 		.byte	0x3
+ 1608 0490 01       		.4byte	ArpTable
+ 1609 0491 05       		.byte	0x0
+ 1610 0492 03       		.section	.debug_abbrev
+ 1611 0493 00000000 		.uleb128 0x1
+ 1612 0497 08       		.uleb128 0x11
+ 1613 0498 A7040000 		.byte	0x1
+ 1614 049c 87020000 		.uleb128 0x10
+ 1615 04a0 09       		.uleb128 0x6
+ 1616 04a1 D4000000 		.uleb128 0x12
+ 1617 04a5 07       		.uleb128 0x1
+ 1618 04a6 00       		.uleb128 0x11
+ 1619 04a7 14       		.uleb128 0x1
+ 1620 04a8 2D000000 		.uleb128 0x25
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 34
+
+
+ 1621 04ac 01       		.uleb128 0xe
+ 1622 04ad 21       		.uleb128 0x13
+ 1623 04ae 97040000 		.uleb128 0xb
+ 1624 04b2 01       		.uleb128 0x3
+ 1625 04b3 05       		.uleb128 0xe
+ 1626 04b4 03       		.uleb128 0x1b
+ 1627 04b5 00000000 		.uleb128 0xe
+ 1628 04b9 00       		.byte	0x0
+ 1629              		.byte	0x0
+ 1630 0000 01       		.uleb128 0x2
+ 1631 0001 11       		.uleb128 0x16
+ 1632 0002 01       		.byte	0x0
+ 1633 0003 10       		.uleb128 0x3
+ 1634 0004 06       		.uleb128 0x8
+ 1635 0005 12       		.uleb128 0x3a
+ 1636 0006 01       		.uleb128 0xb
+ 1637 0007 11       		.uleb128 0x3b
+ 1638 0008 01       		.uleb128 0xb
+ 1639 0009 25       		.uleb128 0x49
+ 1640 000a 0E       		.uleb128 0x13
+ 1641 000b 13       		.byte	0x0
+ 1642 000c 0B       		.byte	0x0
+ 1643 000d 03       		.uleb128 0x3
+ 1644 000e 0E       		.uleb128 0x24
+ 1645 000f 1B       		.byte	0x0
+ 1646 0010 0E       		.uleb128 0x3
+ 1647 0011 00       		.uleb128 0xe
+ 1648 0012 00       		.uleb128 0xb
+ 1649 0013 02       		.uleb128 0xb
+ 1650 0014 16       		.uleb128 0x3e
+ 1651 0015 00       		.uleb128 0xb
+ 1652 0016 03       		.byte	0x0
+ 1653 0017 08       		.byte	0x0
+ 1654 0018 3A       		.uleb128 0x4
+ 1655 0019 0B       		.uleb128 0x24
+ 1656 001a 3B       		.byte	0x0
+ 1657 001b 0B       		.uleb128 0x3
+ 1658 001c 49       		.uleb128 0x8
+ 1659 001d 13       		.uleb128 0xb
+ 1660 001e 00       		.uleb128 0xb
+ 1661 001f 00       		.uleb128 0x3e
+ 1662 0020 03       		.uleb128 0xb
+ 1663 0021 24       		.byte	0x0
+ 1664 0022 00       		.byte	0x0
+ 1665 0023 03       		.uleb128 0x5
+ 1666 0024 0E       		.uleb128 0x16
+ 1667 0025 0B       		.byte	0x0
+ 1668 0026 0B       		.uleb128 0x3
+ 1669 0027 3E       		.uleb128 0xe
+ 1670 0028 0B       		.uleb128 0x3a
+ 1671 0029 00       		.uleb128 0xb
+ 1672 002a 00       		.uleb128 0x3b
+ 1673 002b 04       		.uleb128 0xb
+ 1674 002c 24       		.uleb128 0x49
+ 1675 002d 00       		.uleb128 0x13
+ 1676 002e 03       		.byte	0x0
+ 1677 002f 08       		.byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 35
+
+
+ 1678 0030 0B       		.uleb128 0x6
+ 1679 0031 0B       		.uleb128 0x13
+ 1680 0032 3E       		.byte	0x1
+ 1681 0033 0B       		.uleb128 0x1
+ 1682 0034 00       		.uleb128 0x13
+ 1683 0035 00       		.uleb128 0x3
+ 1684 0036 05       		.uleb128 0xe
+ 1685 0037 16       		.uleb128 0xb
+ 1686 0038 00       		.uleb128 0xb
+ 1687 0039 03       		.uleb128 0x3a
+ 1688 003a 0E       		.uleb128 0xb
+ 1689 003b 3A       		.uleb128 0x3b
+ 1690 003c 0B       		.uleb128 0xb
+ 1691 003d 3B       		.byte	0x0
+ 1692 003e 0B       		.byte	0x0
+ 1693 003f 49       		.uleb128 0x7
+ 1694 0040 13       		.uleb128 0xd
+ 1695 0041 00       		.byte	0x0
+ 1696 0042 00       		.uleb128 0x3
+ 1697 0043 06       		.uleb128 0xe
+ 1698 0044 13       		.uleb128 0x3a
+ 1699 0045 01       		.uleb128 0xb
+ 1700 0046 01       		.uleb128 0x3b
+ 1701 0047 13       		.uleb128 0xb
+ 1702 0048 03       		.uleb128 0x49
+ 1703 0049 0E       		.uleb128 0x13
+ 1704 004a 0B       		.uleb128 0x38
+ 1705 004b 0B       		.uleb128 0xa
+ 1706 004c 3A       		.byte	0x0
+ 1707 004d 0B       		.byte	0x0
+ 1708 004e 3B       		.uleb128 0x8
+ 1709 004f 0B       		.uleb128 0x1
+ 1710 0050 00       		.byte	0x1
+ 1711 0051 00       		.uleb128 0x1
+ 1712 0052 07       		.uleb128 0x13
+ 1713 0053 0D       		.uleb128 0x49
+ 1714 0054 00       		.uleb128 0x13
+ 1715 0055 03       		.byte	0x0
+ 1716 0056 0E       		.byte	0x0
+ 1717 0057 3A       		.uleb128 0x9
+ 1718 0058 0B       		.uleb128 0x21
+ 1719 0059 3B       		.byte	0x0
+ 1720 005a 0B       		.uleb128 0x49
+ 1721 005b 49       		.uleb128 0x13
+ 1722 005c 13       		.uleb128 0x2f
+ 1723 005d 38       		.uleb128 0xb
+ 1724 005e 0A       		.byte	0x0
+ 1725 005f 00       		.byte	0x0
+ 1726 0060 00       		.uleb128 0xa
+ 1727 0061 08       		.uleb128 0xd
+ 1728 0062 01       		.byte	0x0
+ 1729 0063 01       		.uleb128 0x3
+ 1730 0064 01       		.uleb128 0x8
+ 1731 0065 13       		.uleb128 0x3a
+ 1732 0066 49       		.uleb128 0xb
+ 1733 0067 13       		.uleb128 0x3b
+ 1734 0068 00       		.uleb128 0xb
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 36
+
+
+ 1735 0069 00       		.uleb128 0x49
+ 1736 006a 09       		.uleb128 0x13
+ 1737 006b 21       		.uleb128 0x38
+ 1738 006c 00       		.uleb128 0xa
+ 1739 006d 49       		.byte	0x0
+ 1740 006e 13       		.byte	0x0
+ 1741 006f 2F       		.uleb128 0xb
+ 1742 0070 0B       		.uleb128 0x2e
+ 1743 0071 00       		.byte	0x1
+ 1744 0072 00       		.uleb128 0x1
+ 1745 0073 0A       		.uleb128 0x13
+ 1746 0074 0D       		.uleb128 0x3f
+ 1747 0075 00       		.uleb128 0xc
+ 1748 0076 03       		.uleb128 0x3
+ 1749 0077 08       		.uleb128 0xe
+ 1750 0078 3A       		.uleb128 0x3a
+ 1751 0079 0B       		.uleb128 0xb
+ 1752 007a 3B       		.uleb128 0x3b
+ 1753 007b 0B       		.uleb128 0xb
+ 1754 007c 49       		.uleb128 0x27
+ 1755 007d 13       		.uleb128 0xc
+ 1756 007e 38       		.uleb128 0x11
+ 1757 007f 0A       		.uleb128 0x1
+ 1758 0080 00       		.uleb128 0x12
+ 1759 0081 00       		.uleb128 0x1
+ 1760 0082 0B       		.uleb128 0x40
+ 1761 0083 2E       		.uleb128 0xa
+ 1762 0084 01       		.byte	0x0
+ 1763 0085 01       		.byte	0x0
+ 1764 0086 13       		.uleb128 0xc
+ 1765 0087 3F       		.uleb128 0x34
+ 1766 0088 0C       		.byte	0x0
+ 1767 0089 03       		.uleb128 0x3
+ 1768 008a 0E       		.uleb128 0x8
+ 1769 008b 3A       		.uleb128 0x3a
+ 1770 008c 0B       		.uleb128 0xb
+ 1771 008d 3B       		.uleb128 0x3b
+ 1772 008e 0B       		.uleb128 0xb
+ 1773 008f 27       		.uleb128 0x49
+ 1774 0090 0C       		.uleb128 0x13
+ 1775 0091 11       		.byte	0x0
+ 1776 0092 01       		.byte	0x0
+ 1777 0093 12       		.uleb128 0xd
+ 1778 0094 01       		.uleb128 0x2e
+ 1779 0095 40       		.byte	0x1
+ 1780 0096 0A       		.uleb128 0x1
+ 1781 0097 00       		.uleb128 0x13
+ 1782 0098 00       		.uleb128 0x3f
+ 1783 0099 0C       		.uleb128 0xc
+ 1784 009a 34       		.uleb128 0x3
+ 1785 009b 00       		.uleb128 0xe
+ 1786 009c 03       		.uleb128 0x3a
+ 1787 009d 08       		.uleb128 0xb
+ 1788 009e 3A       		.uleb128 0x3b
+ 1789 009f 0B       		.uleb128 0xb
+ 1790 00a0 3B       		.uleb128 0x27
+ 1791 00a1 0B       		.uleb128 0xc
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 37
+
+
+ 1792 00a2 49       		.uleb128 0x11
+ 1793 00a3 13       		.uleb128 0x1
+ 1794 00a4 00       		.uleb128 0x12
+ 1795 00a5 00       		.uleb128 0x1
+ 1796 00a6 0D       		.uleb128 0x40
+ 1797 00a7 2E       		.uleb128 0x6
+ 1798 00a8 01       		.byte	0x0
+ 1799 00a9 01       		.byte	0x0
+ 1800 00aa 13       		.uleb128 0xe
+ 1801 00ab 3F       		.uleb128 0x5
+ 1802 00ac 0C       		.byte	0x0
+ 1803 00ad 03       		.uleb128 0x3
+ 1804 00ae 0E       		.uleb128 0xe
+ 1805 00af 3A       		.uleb128 0x3a
+ 1806 00b0 0B       		.uleb128 0xb
+ 1807 00b1 3B       		.uleb128 0x3b
+ 1808 00b2 0B       		.uleb128 0xb
+ 1809 00b3 27       		.uleb128 0x49
+ 1810 00b4 0C       		.uleb128 0x13
+ 1811 00b5 11       		.uleb128 0x2
+ 1812 00b6 01       		.uleb128 0x6
+ 1813 00b7 12       		.byte	0x0
+ 1814 00b8 01       		.byte	0x0
+ 1815 00b9 40       		.uleb128 0xf
+ 1816 00ba 06       		.uleb128 0xf
+ 1817 00bb 00       		.byte	0x0
+ 1818 00bc 00       		.uleb128 0xb
+ 1819 00bd 0E       		.uleb128 0xb
+ 1820 00be 05       		.uleb128 0x49
+ 1821 00bf 00       		.uleb128 0x13
+ 1822 00c0 03       		.byte	0x0
+ 1823 00c1 0E       		.byte	0x0
+ 1824 00c2 3A       		.uleb128 0x10
+ 1825 00c3 0B       		.uleb128 0x34
+ 1826 00c4 3B       		.byte	0x0
+ 1827 00c5 0B       		.uleb128 0x3
+ 1828 00c6 49       		.uleb128 0xe
+ 1829 00c7 13       		.uleb128 0x3a
+ 1830 00c8 02       		.uleb128 0xb
+ 1831 00c9 06       		.uleb128 0x3b
+ 1832 00ca 00       		.uleb128 0xb
+ 1833 00cb 00       		.uleb128 0x49
+ 1834 00cc 0F       		.uleb128 0x13
+ 1835 00cd 0F       		.byte	0x0
+ 1836 00ce 00       		.byte	0x0
+ 1837 00cf 0B       		.uleb128 0x11
+ 1838 00d0 0B       		.uleb128 0x2e
+ 1839 00d1 49       		.byte	0x1
+ 1840 00d2 13       		.uleb128 0x1
+ 1841 00d3 00       		.uleb128 0x13
+ 1842 00d4 00       		.uleb128 0x3f
+ 1843 00d5 10       		.uleb128 0xc
+ 1844 00d6 34       		.uleb128 0x3
+ 1845 00d7 00       		.uleb128 0xe
+ 1846 00d8 03       		.uleb128 0x3a
+ 1847 00d9 0E       		.uleb128 0xb
+ 1848 00da 3A       		.uleb128 0x3b
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 38
+
+
+ 1849 00db 0B       		.uleb128 0xb
+ 1850 00dc 3B       		.uleb128 0x27
+ 1851 00dd 0B       		.uleb128 0xc
+ 1852 00de 49       		.uleb128 0x49
+ 1853 00df 13       		.uleb128 0x13
+ 1854 00e0 00       		.uleb128 0x11
+ 1855 00e1 00       		.uleb128 0x1
+ 1856 00e2 11       		.uleb128 0x12
+ 1857 00e3 2E       		.uleb128 0x1
+ 1858 00e4 01       		.uleb128 0x40
+ 1859 00e5 01       		.uleb128 0xa
+ 1860 00e6 13       		.byte	0x0
+ 1861 00e7 3F       		.byte	0x0
+ 1862 00e8 0C       		.uleb128 0x12
+ 1863 00e9 03       		.uleb128 0x34
+ 1864 00ea 0E       		.byte	0x0
+ 1865 00eb 3A       		.uleb128 0x3
+ 1866 00ec 0B       		.uleb128 0xe
+ 1867 00ed 3B       		.uleb128 0x3a
+ 1868 00ee 0B       		.uleb128 0xb
+ 1869 00ef 27       		.uleb128 0x3b
+ 1870 00f0 0C       		.uleb128 0xb
+ 1871 00f1 49       		.uleb128 0x49
+ 1872 00f2 13       		.uleb128 0x13
+ 1873 00f3 11       		.uleb128 0x2
+ 1874 00f4 01       		.uleb128 0x6
+ 1875 00f5 12       		.byte	0x0
+ 1876 00f6 01       		.byte	0x0
+ 1877 00f7 40       		.uleb128 0x13
+ 1878 00f8 0A       		.uleb128 0x5
+ 1879 00f9 00       		.byte	0x0
+ 1880 00fa 00       		.uleb128 0x3
+ 1881 00fb 12       		.uleb128 0x8
+ 1882 00fc 34       		.uleb128 0x3a
+ 1883 00fd 00       		.uleb128 0xb
+ 1884 00fe 03       		.uleb128 0x3b
+ 1885 00ff 0E       		.uleb128 0xb
+ 1886 0100 3A       		.uleb128 0x49
+ 1887 0101 0B       		.uleb128 0x13
+ 1888 0102 3B       		.uleb128 0x2
+ 1889 0103 0B       		.uleb128 0x6
+ 1890 0104 49       		.byte	0x0
+ 1891 0105 13       		.byte	0x0
+ 1892 0106 02       		.uleb128 0x14
+ 1893 0107 06       		.uleb128 0x34
+ 1894 0108 00       		.byte	0x0
+ 1895 0109 00       		.uleb128 0x3
+ 1896 010a 13       		.uleb128 0xe
+ 1897 010b 05       		.uleb128 0x3a
+ 1898 010c 00       		.uleb128 0xb
+ 1899 010d 03       		.uleb128 0x3b
+ 1900 010e 08       		.uleb128 0xb
+ 1901 010f 3A       		.uleb128 0x49
+ 1902 0110 0B       		.uleb128 0x13
+ 1903 0111 3B       		.uleb128 0x3f
+ 1904 0112 0B       		.uleb128 0xc
+ 1905 0113 49       		.uleb128 0x2
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 39
+
+
+ 1906 0114 13       		.uleb128 0xa
+ 1907 0115 02       		.byte	0x0
+ 1908 0116 06       		.byte	0x0
+ 1909 0117 00       		.byte	0x0
+ 1910 0118 00       		.section	.debug_pubnames,"",%progbits
+ 1911 0119 14       		.4byte	0xae
+ 1912 011a 34       		.2byte	0x2
+ 1913 011b 00       		.4byte	.Ldebug_info0
+ 1914 011c 03       		.4byte	0x4ba
+ 1915 011d 0E       		.4byte	0x2be
+ 1916 011e 3A       		.ascii	"arpInit\000"
+ 1917 011f 0B       		.4byte	0x2df
+ 1918 0120 3B       		.ascii	"arpSetAddress\000"
+ 1919 0121 0B       		.4byte	0x31d
+ 1920 0122 49       		.ascii	"arpTimer\000"
+ 1921 0123 13       		.4byte	0x340
+ 1922 0124 3F       		.ascii	"arpMatchIp\000"
+ 1923 0125 0C       		.4byte	0x374
+ 1924 0126 02       		.ascii	"arpIpOut\000"
+ 1925 0127 0A       		.4byte	0x3c1
+ 1926 0128 00       		.ascii	"arpIpIn\000"
+ 1927 0129 00       		.4byte	0x3f5
+ 1928 012a 00       		.ascii	"arpPrintTable\000"
+ 1929              		.4byte	0x418
+ 1930 0000 AE000000 		.ascii	"arpPrintHeader\000"
+ 1931 0004 0200     		.4byte	0x447
+ 1932 0006 00000000 		.ascii	"arpArpIn\000"
+ 1933 000a BA040000 		.4byte	0x485
+ 1934 000e BE020000 		.ascii	"ArpMyAddr\000"
+ 1935 0012 61727049 		.4byte	0x4a7
+ 1935      6E697400 
+ 1936 001a DF020000 		.ascii	"ArpTable\000"
+ 1937 001e 61727053 		.4byte	0x0
+ 1937      65744164 
+ 1937      64726573 
+ 1937      7300
+ 1938 002c 1D030000 		.section	.debug_aranges,"",%progbits
+ 1939 0030 61727054 		.4byte	0x1c
+ 1939      696D6572 
+ 1939      00
+ 1940 0039 40030000 		.2byte	0x2
+ 1941 003d 6172704D 		.4byte	.Ldebug_info0
+ 1941      61746368 
+ 1941      497000
+ 1942 0048 74030000 		.byte	0x4
+ 1943 004c 61727049 		.byte	0x0
+ 1943      704F7574 
+ 1943      00
+ 1944 0055 C1030000 		.2byte	0x0
+ 1945 0059 61727049 		.2byte	0x0
+ 1945      70496E00 
+ 1946 0061 F5030000 		.4byte	.Ltext0
+ 1947 0065 61727050 		.4byte	.Letext0-.Ltext0
+ 1947      72696E74 
+ 1947      5461626C 
+ 1947      6500
+ 1948 0073 18040000 		.4byte	0x0
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 40
+
+
+ 1949 0077 61727050 		.4byte	0x0
+ 1949      72696E74 
+ 1949      48656164 
+ 1949      657200
+ 1950 0086 47040000 		.section	.debug_str,"MS",%progbits,1
+ 1951 008a 61727041 	.LASF29:
+ 1951      7270496E 
+ 1951      00
+ 1952 0093 85040000 		.ascii	"netIpHeader\000"
+ 1953 0097 4172704D 	.LASF52:
+ 1953      79416464 
+ 1953      7200
+ 1954 00a1 A7040000 		.ascii	"arpIpIn\000"
+ 1955 00a5 41727054 	.LASF17:
+ 1955      61626C65 
+ 1955      00
+ 1956 00ae 00000000 		.ascii	"dest\000"
+ 1957              	.LASF15:
+ 1958 0000 1C000000 		.ascii	"netEthHeader\000"
+ 1959 0004 0200     	.LASF10:
+ 1960 0006 00000000 		.ascii	"int8_t\000"
+ 1961 000a 04       	.LASF57:
+ 1962 000b 00       		.ascii	"ArpTable\000"
+ 1963 000c 0000     	.LASF58:
+ 1964 000e 0000     		.ascii	"GNU C 4.1.1 (WinARM)\000"
+ 1965 0010 00000000 	.LASF18:
+ 1966 0014 C4050000 		.ascii	"type\000"
+ 1967 0018 00000000 	.LASF25:
+ 1968 001c 00000000 		.ascii	"shwaddr\000"
+ 1969              	.LASF54:
+ 1970              		.ascii	"arpPrintHeader\000"
+ 1971 0000 6E657449 	.LASF3:
+ 1971      70486561 
+ 1971      64657200 
+ 1972              		.ascii	"short int\000"
+ 1973 000c 61727049 	.LASF36:
+ 1973      70496E00 
+ 1974              		.ascii	"netEthArpHeader\000"
+ 1975 0014 64657374 	.LASF11:
+ 1975      00
+ 1976              		.ascii	"uint8_t\000"
+ 1977 0019 6E657445 	.LASF24:
+ 1977      74684865 
+ 1977      61646572 
+ 1977      00
+ 1978              		.ascii	"opcode\000"
+ 1979 0026 696E7438 	.LASF22:
+ 1979      5F7400
+ 1980              		.ascii	"hwlen\000"
+ 1981 002d 41727054 	.LASF26:
+ 1981      61626C65 
+ 1981      00
+ 1982              		.ascii	"sipaddr\000"
+ 1983 0036 474E5520 	.LASF50:
+ 1983      4320342E 
+ 1983      312E3120 
+ 1983      2857696E 
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 41
+
+
+ 1983      41524D29 
+ 1984              		.ascii	"packet\000"
+ 1985 004b 74797065 	.LASF13:
+ 1985      00
+ 1986              		.ascii	"uint32_t\000"
+ 1987 0050 73687761 	.LASF21:
+ 1987      64647200 
+ 1988              		.ascii	"protocol\000"
+ 1989 0058 61727050 	.LASF44:
+ 1989      72696E74 
+ 1989      48656164 
+ 1989      657200
+ 1990              		.ascii	"myeth\000"
+ 1991 0067 73686F72 	.LASF14:
+ 1991      7420696E 
+ 1991      7400
+ 1992              		.ascii	"netEthAddr\000"
+ 1993 0071 6E657445 	.LASF7:
+ 1993      74684172 
+ 1993      70486561 
+ 1993      64657200 
+ 1994              		.ascii	"long long int\000"
+ 1995 0081 75696E74 	.LASF30:
+ 1995      385F7400 
+ 1996              		.ascii	"ipid\000"
+ 1997 0089 6F70636F 	.LASF5:
+ 1997      646500
+ 1998              		.ascii	"long int\000"
+ 1999 0090 68776C65 	.LASF16:
+ 1999      6E00
+ 2000              		.ascii	"addr\000"
+ 2001 0096 73697061 	.LASF39:
+ 2001      64647200 
+ 2002              		.ascii	"ipaddr\000"
+ 2003 009e 7061636B 	.LASF60:
+ 2003      657400
+ 2004              		.ascii	"C:\\Code\\ARM\\lpc2000\\EtherDrive\\etherdrive-net\000"
+ 2005 00a5 75696E74 	.LASF34:
+ 2005      33325F74 
+ 2005      00
+ 2006              		.ascii	"srcipaddr\000"
+ 2007 00ae 70726F74 	.LASF32:
+ 2007      6F636F6C 
+ 2007      00
+ 2008              		.ascii	"proto\000"
+ 2009 00b7 6D796574 	.LASF0:
+ 2009      6800
+ 2010              		.ascii	"unsigned char\000"
+ 2011 00bd 6E657445 	.LASF43:
+ 2011      74684164 
+ 2011      647200
+ 2012              		.ascii	"arpSetAddress\000"
+ 2013 00c8 6C6F6E67 	.LASF27:
+ 2013      206C6F6E 
+ 2013      6720696E 
+ 2013      7400
+ 2014              		.ascii	"dhwaddr\000"
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 42
+
+
+ 2015 00d6 69706964 	.LASF1:
+ 2015      00
+ 2016              		.ascii	"signed char\000"
+ 2017 00db 6C6F6E67 	.LASF6:
+ 2017      20696E74 
+ 2017      00
+ 2018              		.ascii	"long long unsigned int\000"
+ 2019 00e4 61646472 	.LASF28:
+ 2019      00
+ 2020              		.ascii	"dipaddr\000"
+ 2021 00e9 69706164 	.LASF8:
+ 2021      647200
+ 2022              		.ascii	"unsigned int\000"
+ 2023 00f0 433A5C43 	.LASF46:
+ 2023      6F64655C 
+ 2023      41524D5C 
+ 2023      6C706332 
+ 2023      3030305C 
+ 2024              		.ascii	"arpTimer\000"
+ 2025 011e 73726369 	.LASF12:
+ 2025      70616464 
+ 2025      7200
+ 2026              		.ascii	"uint16_t\000"
+ 2027 0128 70726F74 	.LASF31:
+ 2027      6F00
+ 2028              		.ascii	"ipoffset\000"
+ 2029 012e 756E7369 	.LASF19:
+ 2029      676E6564 
+ 2029      20636861 
+ 2029      7200
+ 2030              		.ascii	"netArpHeader\000"
+ 2031 013c 61727053 	.LASF45:
+ 2031      65744164 
+ 2031      64726573 
+ 2031      7300
+ 2032              		.ascii	"myip\000"
+ 2033 014a 64687761 	.LASF41:
+ 2033      64647200 
+ 2034              		.ascii	"time\000"
+ 2035 0152 7369676E 	.LASF23:
+ 2035      65642063 
+ 2035      68617200 
+ 2036              		.ascii	"protolen\000"
+ 2037 015e 6C6F6E67 	.LASF2:
+ 2037      206C6F6E 
+ 2037      6720756E 
+ 2037      7369676E 
+ 2037      65642069 
+ 2038              		.ascii	"short unsigned int\000"
+ 2039 0175 64697061 	.LASF48:
+ 2039      64647200 
+ 2040              		.ascii	"arpMatchIp\000"
+ 2041 017d 756E7369 	.LASF9:
+ 2041      676E6564 
+ 2041      20696E74 
+ 2041      00
+ 2042              		.ascii	"char\000"
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 43
+
+
+ 2043 018a 61727054 	.LASF20:
+ 2043      696D6572 
+ 2043      00
+ 2044              		.ascii	"hwtype\000"
+ 2045 0193 75696E74 	.LASF40:
+ 2045      31365F74 
+ 2045      00
+ 2046              		.ascii	"ethaddr\000"
+ 2047 019c 69706F66 	.LASF49:
+ 2047      66736574 
+ 2047      00
+ 2048              		.ascii	"arpIpOut\000"
+ 2049 01a5 6E657441 	.LASF56:
+ 2049      72704865 
+ 2049      61646572 
+ 2049      00
+ 2050              		.ascii	"ArpMyAddr\000"
+ 2051 01b2 6D796970 	.LASF4:
+ 2051      00
+ 2052              		.ascii	"long unsigned int\000"
+ 2053 01b7 74696D65 	.LASF35:
+ 2053      00
+ 2054              		.ascii	"destipaddr\000"
+ 2055 01bc 70726F74 	.LASF53:
+ 2055      6F6C656E 
+ 2055      00
+ 2056              		.ascii	"arpPrintTable\000"
+ 2057 01c5 73686F72 	.LASF59:
+ 2057      7420756E 
+ 2057      7369676E 
+ 2057      65642069 
+ 2057      6E7400
+ 2058              		.ascii	"c:\\code\\arm\\armlib/net/arp.c\000"
+ 2059 01d8 6172704D 	.LASF42:
+ 2059      61746368 
+ 2059      497000
+ 2060              		.ascii	"arpInit\000"
+ 2061 01e3 63686172 	.LASF55:
+ 2061      00
+ 2062              		.ascii	"arpArpIn\000"
+ 2063 01e8 68777479 	.LASF37:
+ 2063      706500
+ 2064              		.ascii	"netEthIpHeader\000"
+ 2065 01ef 65746861 	.LASF33:
+ 2065      64647200 
+ 2066              		.ascii	"ipchksum\000"
+ 2067 01f7 61727049 	.LASF51:
+ 2067      704F7574 
+ 2067      00
+ 2068              		.ascii	"phyDstIp\000"
+ 2069 0200 4172704D 	.LASF47:
+ 2069      79416464 
+ 2069      7200
+ 2070              		.ascii	"index\000"
+ 2071 020a 6C6F6E67 	.LASF38:
+ 2071      20756E73 
+ 2071      69676E65 
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 44
+
+
+ 2071      6420696E 
+ 2071      7400
+ 2072              		.ascii	"ArpEntry\000"
+ 2073 021c 64657374 		.ident	"GCC: (GNU) 4.1.1 (WinARM)"
+ 2073      69706164 
+ 2073      647200
+ 2074              	...
+ARM GAS  C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s 			page 45
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 arp.c
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:13     .text:00000000 arpInit
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:22     .text:00000000 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:39     .text:00000024 $d
+                            *COM*:00000060 ArpTable
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:46     .text:0000002c arpSetAddress
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:52     .text:0000002c $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:72     .text:00000054 $d
+                            *COM*:0000000c ArpMyAddr
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:78     .text:00000058 arpTimer
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:86     .text:00000058 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:104    .text:00000080 $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:111    .text:00000088 arpMatchIp
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:119    .text:00000088 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:140    .text:000000b8 $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:146    .text:000000bc arpIpOut
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:152    .text:000000bc $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:239    .text:000001a0 $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:246    .text:000001a8 arpIpIn
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:252    .text:000001a8 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:333    .text:000002a4 $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:353    .text:000002a8 arpPrintTable
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:358    .text:000002a8 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:398    .text:0000030c $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:438    .text:00000324 arpPrintHeader
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:444    .text:00000324 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:539    .text:0000044c $d
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:553    .text:00000470 arpArpIn
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:559    .text:00000470 $a
+C:\DOCUME~1\pstang\LOCALS~1\Temp/ccquaaaa.s:658    .text:000005c0 $d
+
+UNDEFINED SYMBOLS
+memcpy
+rprintfStr
+rprintfu08
+netPrintEthAddr
+netPrintIPAddr
+rprintfCRLF
+htons
+nicSend
