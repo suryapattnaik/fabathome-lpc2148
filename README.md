@@ -2,7 +2,7 @@
 
 # Overview
 
-This is a port of the fab@home arm controller code to the Olimex LPC2147 arm board.
+This is a port of the fab@home arm controller code to the Olimex LPC-P2148 arm board.
 
 See http://www.fabathome.org/ for more details.
 
