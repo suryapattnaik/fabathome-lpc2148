@@ -6,6 +6,8 @@ This is a port of the fab@home arm controller code to the Olimex LPC2147 arm boa
 
 See http://www.fabathome.org/ for more details.
 
+![LPC-P2148](https://raw.github.com/koppi/fabathome-lpc2148/master/LPC-P2148.jpg "LPC-P2148")
+
 ## Build the ARM controller code
 
 ```
